@@ -1,33 +1,70 @@
-import { Tabs } from 'expo-router';
 import React from 'react';
+import { Tabs } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 
-import { HapticTab } from '@/components/haptic-tab';
-import { IconSymbol } from '@/components/ui/icon-symbol';
-import { Colors } from '@/constants/theme';
-import { useColorScheme } from '@/hooks/use-color-scheme';
+type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
 
-export default function TabLayout() {
-  const colorScheme = useColorScheme();
+function TabIcon({ name, color, size }: { name: IoniconsName; color: string; size: number }) {
+  return <Ionicons name={name} size={size} color={color} />;
+}
 
+export default function TabsLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
-        headerShown: false,
-        tabBarButton: HapticTab,
-      }}>
+        tabBarActiveTintColor: 'var(--accent-primary)',
+        tabBarInactiveTintColor: 'var(--text-muted)',
+        tabBarStyle: {
+          backgroundColor: 'var(--surface)',
+          borderTopColor: 'var(--border)',
+        },
+        headerStyle: { backgroundColor: 'var(--bg)' },
+        headerTintColor: 'var(--text-primary)',
+        headerShadowVisible: false,
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Home',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="house.fill" color={color} />,
+          title: 'Calendar',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="calendar-outline" color={color} size={size} />
+          ),
         }}
       />
       <Tabs.Screen
-        name="explore"
+        name="insights"
         options={{
-          title: 'Explore',
-          tabBarIcon: ({ color }) => <IconSymbol size={28} name="paperplane.fill" color={color} />,
+          title: 'Insights',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="stats-chart-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="meds"
+        options={{
+          title: 'Meds',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="medical-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="settings"
+        options={{
+          title: 'Settings',
+          tabBarIcon: ({ color, size }) => (
+            <TabIcon name="settings-outline" color={color} size={size} />
+          ),
+        }}
+      />
+      {/* Community tab — hidden until FEATURE_FLAGS.communityFeed is true */}
+      <Tabs.Screen
+        name="community"
+        options={{
+          href: null,
+          title: 'Community',
         }}
       />
     </Tabs>
