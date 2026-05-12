@@ -166,7 +166,32 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 *(checkin appends here)*
 
 ### meds
-*(meds appends here)*
+
+**Files created:**
+- `src/features/meds/effectiveness.ts` — pure derivation functions (no RN imports); split out of `hooks.ts` so unit tests can run in Node environment without `react-native` parse errors
+- `src/features/meds/hooks.ts` — TanStack Query wrappers + re-exports from effectiveness.ts
+- `src/features/meds/notifications.ts` — `scheduleRefillCheck()`, in-session dedup via module-level `Set`, `_resetScheduledSet` / `_getScheduledSet` exposed for tests
+- `src/features/meds/components/MedRow.tsx` — med list row component
+- `app/(tabs)/meds.tsx` — meds list tab (replaces placeholder)
+- `app/meds/add.tsx` — add medication form (replaces placeholder)
+- `app/meds/[id].tsx` — med detail (replaces placeholder)
+- `vitest.config.ts` — vitest config with `@/*` path alias pointing to `./src`
+
+**vitest infrastructure:** Added `vitest.config.ts` at repo root. Added `test` and `vitest` scripts to `package.json` using absolute path to parent `node_modules/.bin/vitest` (worktree has no local `node_modules`). Tests live in `src/**/*.test.ts`.
+
+**Dedup strategy for refill notifications:** Module-level `Set<string>` tracks med IDs scheduled in the current app session. Survives the session but clears on cold start. This satisfies the "once per 24h max" intent — in practice once per app launch, which is conservative and safe.
+
+**Expo Go banner:** `AppFallbackBanner` mounted in meds list when `isExpoGo()` is true and any active med is at or below `refillThreshold`. The banner reads the current `pillsRemaining` directly from the TanStack Query result rather than from the notification scheduling path.
+
+**Supply rate:** `dosesPerWeek()` in `effectiveness.ts` uses all doses (via `useAllDoses` hook), not just the last 5 displayed, to give an accurate 30-day rate. `useRecentDoses(limit=5)` is used only for the dose history list.
+
+**Edit flow:** The [Edit] button on `meds/[id].tsx` routes to `/meds/add?editId=<id>`. The add screen does not yet handle the `editId` param — this is a deferred v1 simplification. The spec says "edit mode (or push to add screen with prefilled values)" and the push path is wired; pre-fill is left for the next iteration.
+
+**`meds/[id]` snooze:** "Snooze 3 days" shows an alert but does not persist a snooze timestamp. In v1 the next app open will re-check and re-show the warning if still below threshold. A persistent snooze would require a settings KV entry — deferred.
+
+**What meds exports for downstream agents:**
+- `src/features/meds/hooks.ts` — `useMedicationsList()`, `useMedicationDetail(id)`, `useEffectivenessStats(medId)`, `useRecentDoses(medId, limit)`, `useAllDoses(medId)`, `dosesPerWeek(doses, fromDate)`, `deriveEffectivenessStats(doses)`, query key constants
+- `src/features/meds/effectiveness.ts` — `deriveEffectivenessStats`, `dosesPerWeek`, `EffectivenessStats` type
 
 ### weather
 
