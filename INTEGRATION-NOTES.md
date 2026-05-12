@@ -159,6 +159,28 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 ### log-active
 **Note for log-active (preset by integrator):** Weather agent exports `captureWeatherNow()` as a plain async function AND a `captureNow` callback returned from `useCurrentWeather()`. The standalone `captureWeatherNow()` does NOT auto-invalidate the TanStack Query cache (it can't call `useQueryClient()` outside a hook). Use `useCurrentWeather().captureNow` for automatic cache invalidation, or invalidate manually with `queryClient.invalidateQueries({ queryKey: ['weather', 'current'] })` after calling the bare function.
 
+**Files created:**
+- `app/log/choose.tsx` — choice screen (replaces placeholder); guards against double-active-migraine
+- `app/log/active.tsx` — active mode screen (replaces placeholder); all buttons size='xl' (64pt)
+- `app/log/end.tsx` — end-migraine screen (replaces placeholder); uses `useSeverityState` from hooks
+- `src/features/log-active/hooks.ts` — `useSeverityState`, `useSymptomSelection`, `useWeatherCapture`
+- `src/features/log-active/components/AutoEndPrompt.tsx` — G6 non-dismissible sheet
+- `src/features/log-active/index.ts` — re-exports `AutoEndPrompt` for `@/features/log-active/AutoEndPrompt`
+- `src/features/log-active/hooks.test.ts` — severity-0 toggle + save flow unit tests
+- `src/features/log-active/auto-end-prompt.test.ts` — AutoEndPrompt logic unit tests
+
+**Weather capture pattern:** `useWeatherCapture()` hook in `hooks.ts` fires `captureWeatherNow()` in the background (non-blocking) and manually invalidates `['weather', 'current']`. Returns `cachedSnapshotId` immediately so save doesn't wait on the network. This is the correct pattern per the integrator note.
+
+**AutoEndPrompt export path:** Calendar must import from `@/features/log-active` (the index.ts re-export), not `@/features/log-active/components/AutoEndPrompt` directly. The index.ts re-export is at `src/features/log-active/index.ts`.
+
+**AutoEndPrompt snooze key:** `log-active.auto_end_snooze_until` (string-encoded Unix timestamp in ms). Calendar should check: `getSetting('log-active.auto_end_snooze_until')` and only show the prompt if `Date.now() > snoozeUntil`.
+
+**`endActive` minimal call in AutoEndPrompt:** G6 auto-end doesn't know the final severity/helpers at dismiss time. AutoEndPrompt calls `endActive` with `peakSeverity: 5` (fallback) and `helpers: []`, then navigates to `router.replace('/log/end')` so the user can fill in those fields. This means the end screen is opened after auto-end confirm — the user gets a chance to correct severity and add helpers.
+
+**Slider disabled state for aura-only:** RN Slider accepts a `disabled` prop but the `@react-native-community/slider` component's `disabled` prop is not in the TypeScript types. Aura-only "disables" the slider semantically by ignoring the slider value in `getValueOnSave()` (returns 0). Visual dimming of the slider when aura-only is on is left for the integration polish pass.
+
+**Lint infrastructure:** `expo lint` from the worktree directory falls through to system eslint (v10.1.0) which errors on `react/display-name` for all foundation files — this is a pre-existing worktree isolation issue. Running `eslint` via `/root/tideline/node_modules/.bin/eslint app/log/ src/features/log-active/` from the worktree directory gives 0 errors, 0 warnings. TypeScript passes with 0 errors.
+
 ### log-retro
 *(log-retro appends here)*
 
