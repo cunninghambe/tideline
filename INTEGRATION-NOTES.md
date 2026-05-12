@@ -200,7 +200,26 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 - `pnpm test` — 224 tests pass (194 existing + 30 new)
 
 ### checkin
-*(checkin appends here)*
+
+**Files created:**
+- `app/checkin/[date].tsx` — replaces the foundation placeholder with the full daily check-in screen per spec §7
+- `src/features/checkins/foodTags.ts` — `normalizeFoodTagName` (pure), `useFoodTags()`, `useUpsertFoodTag()`
+- `src/features/checkins/hooks.ts` — `useCheckinForDate(date)` and `useUpsertCheckin(date)` TanStack Query wrappers
+- `src/features/checkins/components/FoodTagPicker.tsx` — chip row + Sheet-based tag picker with search + "Add new" flow
+- `src/features/checkins/foodTags.test.ts` — 11 unit tests: `normalizeFoodTagName` edge cases + upsert logic
+- `src/features/checkins/checkin.test.ts` — 12 tests: repo (getByDate, upsert insert/update/partial), copy verbatim strings
+
+**`useUpsertFoodTag` return type:** `mutationFn` must return `Promise<FoodTagRow>` (not a bare value). Wrapped the synchronous DB call with `Promise.resolve()`. Generic `useMutation<FoodTagRow, Error, string>` type parameters added to let TypeScript infer `mutateAsync` correctly.
+
+**Cycle option type narrowing:** `checkinCopy.cycle.options` is `readonly` (deep const), so a plain `as` cast to a mutable `[]` fails at TS. Used `.map(o => ({ value: o.value as CycleOption, label: o.label }))` instead — maps to a fresh mutable array with the narrowed union type.
+
+**Partial save semantics (spec §7.3):** All numeric fields are passed as-is; only `notes` is explicitly guarded to `null` on empty string. The spec says empty fields "just don't save" — Drizzle `upsert` writes whatever is passed, so callers can pass `null` for fields they want omitted. The screen passes the current state values (defaulting to 0 / '' on first open) which is correct — water 0 = none consumed, caffeine 0 = none consumed. Only notes goes to null on empty string to avoid storing "".
+
+**Cycle event insert on save:** `cycleRepo.insert()` is fire-and-forget (no await). The result is a `Result<CycleRow>` discriminated union; the screen does not surface the error to the user (a failed cycle log should not block the checkin save). If cycle logging errors matter downstream, add a separate alert here.
+
+**`useSetting` for cycle tracking:** reads `'cycle.tracking_enabled'` (string `'true'/'false'`) from the settings KV store per INTEGRATION-NOTES settings key conventions. Falls back to `'false'` (disabled) if not set.
+
+**NativeWind `gap` in `contentContainerStyle`:** `gap` in inline `contentContainerStyle` object works on RN 0.81 (uses Yoga gap support). Avoided `contentContainerClassName` because NativeWind 4 doesn't always apply gap reliably on ScrollView containers — used `style` object instead (confirmed pattern from existing screens).
 
 ### meds
 
