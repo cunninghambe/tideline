@@ -211,7 +211,27 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 *(insights appends here)*
 
 ### settings
-*(settings appends here)*
+
+**New dependency added:** `expo-file-system ~19.0.22` — installed via `npx expo install expo-file-system`. Required by `src/features/settings/exporter.ts` to write the JSON export to the app cache directory before sharing. Added to `package.json`.
+
+**expo-file-system v19 legacy API path:** The modern `expo-file-system` v19 export does NOT include `cacheDirectory`, `writeAsStringAsync`, or `EncodingType` on its main entry point — these moved to a legacy sub-path. The exporter imports directly from `expo-file-system/build/legacy/FileSystem` and `expo-file-system/build/legacy/FileSystem.types`. Metro resolves these at runtime; vitest mocks them by path in tests.
+
+**Settings KV store:** `src/features/settings/store.ts` exports `getSetting(key)` / `setSetting(key, value)` (sync, direct DB) and `useSetting(key, fallback)` / `useSetSetting()` (React hooks via TanStack Query). Other agents may import these if they need to read/write settings (e.g. onboarding writing `onboarding.completed`, notifications writing time prefs).
+
+**Settings key conventions (all string-encoded):**
+- `theme.palette` — PaletteName (e.g. `'calm_sand'`)
+- `theme.mode` — `'light' | 'dark' | 'system'`
+- `cycle.tracking_enabled` — `'true' | 'false'`
+- `community.sharing_enabled` — `'true' | 'false'`
+- `notifications.daily_checkin_enabled` — `'true' | 'false'`
+- `notifications.daily_checkin_time` — `'HH:MM'` (24h)
+- `notifications.refill_reminders_enabled` — `'true' | 'false'`
+- `notifications.in_migraine_enabled` — `'true' | 'false'`
+- `onboarding.completed` — `'true' | 'false'`
+
+**Delete flow:** `deleter.deleteAll()` wipes all tables in FK-safe order, calls `runMigrations()`, then sets `onboarding.completed = false`. Navigates to `/(onboarding)/welcome` after success. Cloud deletion is out of scope while `FEATURE_FLAGS.cloudSync = false`.
+
+**vitest + vi.hoisted pattern:** When mocking modules that reference outer `const` variables in `vi.mock()` factories, use `vi.hoisted()` to create the mock functions — otherwise hoisting causes "Cannot access before initialization" errors at runtime.
 
 ### companion
 *(companion appends here)*
