@@ -7,13 +7,9 @@ const { mockWriteAsStringAsync } = vi.hoisted(() => ({
   mockWriteAsStringAsync: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock('expo-file-system/build/legacy/FileSystem', () => ({
+vi.mock('expo-file-system/legacy', () => ({
   cacheDirectory: '/tmp/test-cache/',
   writeAsStringAsync: mockWriteAsStringAsync,
-}));
-
-vi.mock('expo-file-system/build/legacy/FileSystem.types', () => ({
-  EncodingType: { UTF8: 'utf8', Base64: 'base64' },
 }));
 
 vi.mock('@/db/client', () => ({

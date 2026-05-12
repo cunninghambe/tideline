@@ -11,8 +11,7 @@ import {
 } from '@/db/schema';
 import { ok, err } from '@/lib/result';
 import type { Result } from '@/lib/result';
-import * as FileSystemLegacy from 'expo-file-system/build/legacy/FileSystem';
-import { EncodingType } from 'expo-file-system/build/legacy/FileSystem.types';
+import * as FileSystemLegacy from 'expo-file-system/legacy';
 
 type ExportResult = { filePath: string };
 
@@ -55,7 +54,7 @@ export async function generateExport(): Promise<Result<ExportResult>> {
     const filePath = `${FileSystemLegacy.cacheDirectory ?? ''}${fileName}`;
 
     await FileSystemLegacy.writeAsStringAsync(filePath, json, {
-      encoding: EncodingType.UTF8,
+      encoding: 'utf8',
     });
 
     return ok({ filePath });
