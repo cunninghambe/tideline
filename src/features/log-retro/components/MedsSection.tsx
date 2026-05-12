@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { Stepper } from '@/components/ui/Stepper';
 import { Chip } from '@/components/ui/Chip';
+import { usePalette } from '@/theme/useTheme';
 import type { MedicationRow } from '@/types';
 import type { QueuedDose, EffectivenessRating } from '../logic';
 import { formatHHMM } from '../logic';
@@ -47,6 +48,7 @@ export function MedsSection({
   onAddDose,
   onRemoveDose,
 }: MedsSectionProps) {
+  const palette = usePalette();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [selectedMed, setSelectedMed] = useState<MedicationRow | null>(null);
   const [entry, setEntry] = useState<DoseEntryState | null>(null);
@@ -149,7 +151,7 @@ export function MedsSection({
                 value={search}
                 onChangeText={setSearch}
                 placeholder="Search medications…"
-                placeholderTextColor="var(--text-muted)"
+                placeholderTextColor={palette.textMuted}
                 accessibilityLabel="Search medications"
                 className="bg-surface border border-border rounded-xl px-4 py-3 text-text-primary text-base"
               />
@@ -194,7 +196,7 @@ export function MedsSection({
                   value={entry.doseAmount}
                   onChangeText={(v) => setEntry({ ...entry, doseAmount: v })}
                   placeholder={selectedMed.defaultDose}
-                  placeholderTextColor="var(--text-muted)"
+                  placeholderTextColor={palette.textMuted}
                   accessibilityLabel="Dose amount"
                   className="bg-surface border border-border rounded-xl px-4 py-3 text-text-primary text-base"
                 />

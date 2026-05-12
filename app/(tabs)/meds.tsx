@@ -6,6 +6,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { eq } from 'drizzle-orm';
 
 import { AppFallbackBanner } from '@/components/ui/AppFallbackBanner';
+import { usePalette } from '@/theme/useTheme';
 import { MedRow } from '@/features/meds/components/MedRow';
 import { useMedicationsList, MEDS_QUERY_KEY } from '@/features/meds/hooks';
 import { scheduleRefillCheck } from '@/features/meds/notifications';
@@ -36,9 +37,10 @@ function useLastTakenDates(medIds: string[]): Record<string, Date | null> {
 }
 
 function EmptyState() {
+  const palette = usePalette();
   return (
     <View className="flex-1 items-center justify-center px-8" accessibilityRole="none">
-      <Ionicons name="medical-outline" size={48} color="var(--text-muted)" />
+      <Ionicons name="medical-outline" size={48} color={palette.textMuted} />
       <Text className="text-text-muted text-base text-center mt-4 leading-6">
         You haven&apos;t added any medications yet. Tap + to add one.
       </Text>
@@ -47,6 +49,7 @@ function EmptyState() {
 }
 
 export default function MedsScreen() {
+  const palette = usePalette();
   const queryClient = useQueryClient();
   const { data: meds = [], isLoading } = useMedicationsList();
   const medIds = meds.map((m) => m.id);
@@ -92,7 +95,7 @@ export default function MedsScreen() {
           style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}
           className="bg-accent-primary rounded-full"
         >
-          <Ionicons name="add" size={24} color="var(--text-inverse)" />
+          <Ionicons name="add" size={24} color={palette.textInverse} />
         </Pressable>
       </View>
 

@@ -13,6 +13,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
+import { usePalette } from '@/theme/useTheme';
 import {
   useMedicationDetail,
   useEffectivenessStats,
@@ -114,6 +115,7 @@ type RefillSectionProps = {
 };
 
 function RefillSection({ med, onRefillConfirm, onSnooze }: RefillSectionProps) {
+  const palette = usePalette();
   const [newCountText, setNewCountText] = useState('');
   const isLow =
     med.pillsRemaining != null && med.pillsRemaining <= med.refillThreshold;
@@ -137,18 +139,18 @@ function RefillSection({ med, onRefillConfirm, onSnooze }: RefillSectionProps) {
                 value={newCountText}
                 onChangeText={setNewCountText}
                 placeholder="New count"
-                placeholderTextColor="var(--text-muted)"
+                placeholderTextColor={palette.textMuted}
                 keyboardType="number-pad"
                 accessibilityLabel="New pill count after refill"
                 style={{
                   flex: 1,
                   borderWidth: 1,
-                  borderColor: 'var(--border)',
+                  borderColor: palette.border,
                   borderRadius: 8,
                   paddingHorizontal: 12,
                   paddingVertical: 8,
-                  color: 'var(--text-primary)',
-                  backgroundColor: 'var(--surface)',
+                  color: palette.textPrimary,
+                  backgroundColor: palette.surface,
                   minHeight: 40,
                 }}
               />
@@ -179,6 +181,7 @@ function RefillSection({ med, onRefillConfirm, onSnooze }: RefillSectionProps) {
 }
 
 export default function MedDetailScreen() {
+  const palette = usePalette();
   const { id } = useLocalSearchParams<{ id: string }>();
   const queryClient = useQueryClient();
   const { data: med, isLoading } = useMedicationDetail(id ?? '');
@@ -283,7 +286,7 @@ export default function MedDetailScreen() {
             accessibilityLabel="Edit medication"
             style={{ minHeight: 44, minWidth: 44, alignItems: 'center', justifyContent: 'center' }}
           >
-            <Ionicons name="pencil-outline" size={20} color="var(--accent-primary)" />
+            <Ionicons name="pencil-outline" size={20} color={palette.accentPrimary} />
           </Pressable>
         </View>
 
@@ -327,7 +330,7 @@ export default function MedDetailScreen() {
                       {RATING_LABELS[dose.effectivenessRating] ?? dose.effectivenessRating}
                     </Text>
                   )}
-                  <Ionicons name="chevron-forward" size={14} color="var(--text-muted)" />
+                  <Ionicons name="chevron-forward" size={14} color={palette.textMuted} />
                 </View>
               </Pressable>
             ))

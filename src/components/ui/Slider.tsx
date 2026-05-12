@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 import RNSlider from '@react-native-community/slider';
+import { usePalette } from '@/theme/useTheme';
 
 type SliderProps = {
   value: number;
@@ -23,6 +24,7 @@ export function Slider({
   ariaLabel,
   testID,
 }: SliderProps) {
+  const palette = usePalette();
   return (
     <View className="flex-row items-center gap-3" testID={testID}>
       <View className="flex-1">
@@ -35,9 +37,9 @@ export function Slider({
           accessible
           accessibilityLabel={ariaLabel}
           accessibilityValue={{ min, max, now: value }}
-          minimumTrackTintColor="var(--accent-primary)"
-          maximumTrackTintColor="var(--border)"
-          thumbTintColor="var(--accent-primary)"
+          minimumTrackTintColor={palette.accentPrimary}
+          maximumTrackTintColor={palette.border}
+          thumbTintColor={palette.accentPrimary}
           style={{ height: 32 }}
         />
       </View>

@@ -28,9 +28,16 @@ export default function LogActiveScreen() {
     // Capture weather snapshot id without blocking save
     const weatherSnapshotId = await captureAndGetId();
 
+    // Aura-only forces the 'aura' symptom tag so the calendar can colour the day.
+    const symptomTags = (
+      auraOnly && !selected.includes('aura')
+        ? [...selected, 'aura']
+        : selected
+    ) as SymptomTag[];
+
     const result = insertActive({
       peakSeverity: getValueOnSave(),
-      symptomTags: selected as SymptomTag[],
+      symptomTags,
       notes: notes.trim() || null,
       weatherSnapshotId,
     });
@@ -50,7 +57,7 @@ export default function LogActiveScreen() {
     } else {
       router.replace('/(tabs)');
     }
-  }, [captureAndGetId, getValueOnSave, selected, notes, setActiveMigraineId, router]);
+  }, [captureAndGetId, getValueOnSave, auraOnly, selected, notes, setActiveMigraineId, router]);
 
   return (
     <ScrollView

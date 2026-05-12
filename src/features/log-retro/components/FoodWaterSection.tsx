@@ -4,6 +4,7 @@ import { Link } from 'expo-router';
 
 import { Stepper } from '@/components/ui/Stepper';
 import { Chip } from '@/components/ui/Chip';
+import { usePalette } from '@/theme/useTheme';
 import type { FoodTagRow } from '@/types';
 import { normaliseFoodTagName } from '../logic';
 
@@ -35,6 +36,7 @@ export function FoodWaterSection({
   onToggleFoodTag,
   onAddNewFoodTag,
 }: FoodWaterSectionProps) {
+  const palette = usePalette();
   const [newTagInput, setNewTagInput] = useState('');
   const [showInput, setShowInput] = useState(false);
 
@@ -95,7 +97,7 @@ export function FoodWaterSection({
         )}
 
         <Link
-          href={`/checkin/${date}` as `/${string}`}
+          href={{ pathname: '/checkin/[date]', params: { date } }}
           className="text-accent-primary text-sm font-medium"
           accessibilityLabel="Edit this day's check-in"
         >
@@ -150,7 +152,7 @@ export function FoodWaterSection({
               value={newTagInput}
               onChangeText={setNewTagInput}
               placeholder="e.g. red wine"
-              placeholderTextColor="var(--text-muted)"
+              placeholderTextColor={palette.textMuted}
               accessibilityLabel="New food tag name"
               returnKeyType="done"
               onSubmitEditing={handleAddTag}

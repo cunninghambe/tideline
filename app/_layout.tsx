@@ -7,6 +7,7 @@ import { ThemeProvider } from '@/theme/provider';
 import { runMigrations } from '@/db/client';
 import { getActive } from '@/features/migraines/repo';
 import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
+import { scheduleDailyCheckinReminder } from '@/features/checkins/notifications';
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -30,6 +31,10 @@ export default function RootLayout() {
     if (result.ok && result.value) {
       setActiveMigraineId(result.value.id);
     }
+
+    scheduleDailyCheckinReminder().catch((e: unknown) => {
+      console.error('[tideline] Failed to schedule daily check-in reminder:', e);
+    });
   }, [setActiveMigraineId]);
 
   return (

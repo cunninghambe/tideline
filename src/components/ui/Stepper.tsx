@@ -1,6 +1,7 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { usePalette } from '@/theme/useTheme';
 
 type StepperProps = {
   value: number;
@@ -21,6 +22,7 @@ export function Stepper({
   unit,
   testID,
 }: StepperProps) {
+  const palette = usePalette();
   const decrement = () => onValueChange(Math.max(min, value - step));
   const increment = () => onValueChange(Math.min(max, value + step));
   const canDecrement = value > min;
@@ -46,7 +48,7 @@ export function Stepper({
         style={{ minHeight: 44, minWidth: 44, opacity: canDecrement ? 1 : 0.3 }}
         className="items-center justify-center rounded-full bg-surface border border-border"
       >
-        <Ionicons name="remove" size={20} color="var(--text-primary)" />
+        <Ionicons name="remove" size={20} color={palette.textPrimary} />
       </Pressable>
 
       <Text className="text-text-primary font-semibold text-xl min-w-[40px] text-center">
@@ -63,7 +65,7 @@ export function Stepper({
         style={{ minHeight: 44, minWidth: 44, opacity: canIncrement ? 1 : 0.3 }}
         className="items-center justify-center rounded-full bg-surface border border-border"
       >
-        <Ionicons name="add" size={20} color="var(--text-primary)" />
+        <Ionicons name="add" size={20} color={palette.textPrimary} />
       </Pressable>
     </View>
   );

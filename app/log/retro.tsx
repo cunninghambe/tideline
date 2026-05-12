@@ -194,8 +194,10 @@ export default function LogRetroScreen() {
           endHour={form.endHour}
           endMinute={form.endMinute}
           stillGoing={form.stillGoing}
+          onStartDate={(d) => setForm((p) => ({ ...p, startDate: d }))}
           onStartHour={(h) => setForm((p) => ({ ...p, startHour: h }))}
           onStartMinute={(m) => setForm((p) => ({ ...p, startMinute: m }))}
+          onEndDate={(d) => setForm((p) => ({ ...p, endDate: d }))}
           onEndHour={(h) => setForm((p) => ({ ...p, endHour: h }))}
           onEndMinute={(m) => setForm((p) => ({ ...p, endMinute: m }))}
           onStillGoing={(v) => setForm((p) => ({ ...p, stillGoing: v }))}

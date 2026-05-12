@@ -15,6 +15,7 @@ const SNOOZE_KEY = 'log-active.auto_end_snooze_until';
 type Props = {
   migraineId: string;
   startedAt: Date;
+  onDismiss?: () => void;
 };
 
 function formatDaysAgo(startedAt: Date): string {
@@ -23,7 +24,7 @@ function formatDaysAgo(startedAt: Date): string {
   return `${days} days`;
 }
 
-export function AutoEndPrompt({ migraineId, startedAt }: Props) {
+export function AutoEndPrompt({ migraineId, startedAt, onDismiss }: Props) {
   const router = useRouter();
   const clearActive = useActiveMigraineStore((s) => s.clearActive);
 
@@ -33,8 +34,14 @@ export function AutoEndPrompt({ migraineId, startedAt }: Props) {
   const [endMinute, setEndMinute] = useState(startedAt.getMinutes());
 
   function handleSnooze() {
-    const snoozeUntil = Date.now() + TWENTY_FOUR_HOURS_MS;
-    setSetting(SNOOZE_KEY, String(snoozeUntil));
+    const snoozeUntil = new Date(Date.now() + TWENTY_FOUR_HOURS_MS).toISOString();
+    setSetting(SNOOZE_KEY, snoozeUntil);
+    onDismiss?.();
+  }
+
+  function handleConfirmEndAndDismiss() {
+    handleConfirmEnd();
+    onDismiss?.();
   }
 
   function handleConfirmEnd() {
@@ -108,7 +115,7 @@ export function AutoEndPrompt({ migraineId, startedAt }: Props) {
             </View>
             <Button
               label="Confirm end time"
-              onPress={handleConfirmEnd}
+              onPress={handleConfirmEndAndDismiss}
               variant="primary"
               size="xl"
               fullWidth

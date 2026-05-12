@@ -4,6 +4,7 @@ import { ScrollView, View, Text, Platform } from 'react-native';
 import { ToggleRow } from '@/features/settings/components/ToggleRow';
 import { useSetting, useSetSetting } from '@/features/settings/store';
 import { isExpoGo } from '@/lib/runtime';
+import { scheduleDailyCheckinReminder } from '@/features/checkins/notifications';
 
 /**
  * Simple HH:MM time picker using two steppers.
@@ -116,7 +117,17 @@ export default function NotificationsScreen() {
   const refillEnabled = useSetting('notifications.refill_reminders_enabled', 'true') === 'true';
   const inMigraineEnabled = useSetting('notifications.in_migraine_enabled', 'false') === 'true';
 
-  const { mutate: setSettingMutate } = useSetSetting();
+  const { mutate: setSettingMutateRaw } = useSetSetting();
+
+  const setSettingMutate = (args: { key: string; value: string }) => {
+    setSettingMutateRaw(args, {
+      onSuccess: () => {
+        if (args.key === 'notifications.daily_checkin_enabled' || args.key === 'notifications.daily_checkin_time') {
+          scheduleDailyCheckinReminder().catch(() => {});
+        }
+      },
+    });
+  };
 
   const expoGoCaption =
     Platform.OS !== 'web' && isExpoGo()

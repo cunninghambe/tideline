@@ -26,6 +26,13 @@ import { DuringTintBanner } from '@/features/calendar/components/DuringTintBanne
 
 import type { DailyCheckinRow } from '@/types';
 import { getByDate } from '@/features/checkins/repo';
+import { useCurrentWeather } from '@/features/weather/hooks';
+import { AppFallbackBanner } from '@/components/ui/AppFallbackBanner';
+import { isExpoGo } from '@/lib/runtime';
+import { shouldShowCheckinFallback } from '@/features/checkins/notifications';
+import { AutoEndPrompt } from '@/features/log-active';
+import { getById } from '@/features/migraines/repo';
+import { getSetting } from '@/features/settings/store';
 
 // ---------------------------------------------------------------------------
 // Month picker sheet
@@ -123,6 +130,32 @@ export default function CalendarScreen() {
 
   const activeMigraineId = useActiveMigraineStore((s) => s.activeMigraineId);
 
+  // Expo Go fallback banner for daily check-in
+  const showCheckinBanner = useMemo(
+    () => isExpoGo() && shouldShowCheckinFallback(),
+    [],
+  );
+
+  // Auto-end prompt (G6): mount when active migraine > 24h old and snooze passed
+  const autoEndState = useMemo(() => {
+    if (!activeMigraineId) return null;
+    const result = getById(activeMigraineId);
+    if (!result.ok || !result.value) return null;
+    const startedAt = result.value.startedAt instanceof Date
+      ? result.value.startedAt
+      : new Date(result.value.startedAt);
+    const ageHours = (Date.now() - startedAt.getTime()) / (60 * 60 * 1000);
+    if (ageHours <= 24) return null;
+    const snoozeUntilStr = getSetting('log-active.auto_end_snooze_until');
+    if (snoozeUntilStr) {
+      const snoozeUntil = new Date(snoozeUntilStr);
+      if (!isNaN(snoozeUntil.getTime()) && snoozeUntil.getTime() > Date.now()) return null;
+    }
+    return { migraineId: activeMigraineId, startedAt };
+  }, [activeMigraineId]);
+
+  const [autoEndDismissed, setAutoEndDismissed] = useState(false);
+
   // Load checkins for the month to display dots
   const [checkinsMap, setCheckinsMap] = useState<Record<string, DailyCheckinRow>>({});
   useEffect(() => {
@@ -155,13 +188,16 @@ export default function CalendarScreen() {
 
   const hasAnyMigraine = migraines.length > 0;
 
+  const { captureNow: captureWeatherNow } = useCurrentWeather();
+
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await queryClient.invalidateQueries({ queryKey: ['migraines', 'month', yearMonth] });
-    // Weather refresh — if weather hooks are available, they'd be called here.
-    // Gracefully skip if not yet merged.
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['migraines', 'month', yearMonth] }),
+      captureWeatherNow().catch(() => {}),
+    ]);
     setRefreshing(false);
-  }, [queryClient, yearMonth]);
+  }, [queryClient, yearMonth, captureWeatherNow]);
 
   const goToPrevMonth = useCallback(() => {
     setCurrentMonth((m) => subMonths(m, 1));
@@ -194,6 +230,22 @@ export default function CalendarScreen() {
 
       {/* During-tint banner */}
       <DuringTintBanner />
+
+      {/* Auto-end prompt (G6) for stale active migraines */}
+      {autoEndState && !autoEndDismissed && (
+        <AutoEndPrompt
+          migraineId={autoEndState.migraineId}
+          startedAt={autoEndState.startedAt}
+          onDismiss={() => setAutoEndDismissed(true)}
+        />
+      )}
+
+      {/* Daily check-in fallback banner (Expo Go) */}
+      {showCheckinBanner && (
+        <View style={{ marginTop: 8 }}>
+          <AppFallbackBanner message="Quick check-in: how was yesterday?" />
+        </View>
+      )}
 
       <ScrollView
         style={{ flex: 1 }}

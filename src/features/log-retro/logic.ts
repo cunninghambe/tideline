@@ -35,17 +35,27 @@ export type RetroFormState = {
 /** Initial form state for a new (insert) retrospective log. */
 export function makeInitialState(prefillDate?: string): RetroFormState {
   const now = new Date();
-  const dateStr = prefillDate ?? toISODate(now);
-  const hour = now.getHours();
-  const minute = now.getMinutes();
+  // Retro = "log one that already ended." Default to yesterday at noon when no
+  // date is prefilled, so saving without changes doesn't silently create a
+  // future-time row.
+  const baseDate = prefillDate ? new Date(`${prefillDate}T12:00:00`) : new Date(now);
+  if (!prefillDate) {
+    baseDate.setDate(baseDate.getDate() - 1);
+    baseDate.setHours(12, 0, 0, 0);
+  }
+  const dateStr = toISODate(baseDate);
+  const startHour = baseDate.getHours();
+  const startMinute = baseDate.getMinutes();
+  const endHour = Math.min(23, startHour + 4); // Default 4h duration
+  const endMinute = startMinute;
 
   return {
     startDate: dateStr,
-    startHour: hour,
-    startMinute: minute,
+    startHour,
+    startMinute,
     endDate: dateStr,
-    endHour: hour,
-    endMinute: minute,
+    endHour,
+    endMinute,
     stillGoing: false,
     peakSeverity: 5,
     auraOnly: false,

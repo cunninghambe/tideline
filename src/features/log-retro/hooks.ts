@@ -11,7 +11,7 @@ import * as checkinsRepo from '@/features/checkins/repo';
 import { useAllMigraineEvents } from '@/features/migraines/hooks';
 import { sortHelpersByUserFrequency } from '@/features/migraines/helpers';
 import { HELPER_TAGS_DEFAULT_ORDER } from '@/copy';
-import type { FoodTagRow, MigraineRow, MedicationRow, DailyCheckinRow } from '@/types';
+import type { FoodTagRow, MigraineRow, MedicationRow, DailyCheckinRow, SymptomTag } from '@/types';
 
 import {
   makeInitialState,
@@ -208,13 +208,18 @@ export function useSaveRetro(): {
           ? null
           : toDate(form.endDate, form.endHour, form.endMinute);
         const peakSeverity = form.auraOnly ? 0 : form.peakSeverity;
+        // Aura-only forces the 'aura' symptom tag so the calendar can colour the day.
+        const symptomTags: SymptomTag[] =
+          form.auraOnly && !form.symptomTags.includes('aura')
+            ? [...form.symptomTags, 'aura']
+            : form.symptomTags;
 
         if (data.mode === 'insert') {
           const result = migraineRepo.insertCompleted({
             startedAt,
             endedAt: endedAt ?? new Date(),
             peakSeverity,
-            symptomTags: form.symptomTags,
+            symptomTags,
             helpers: form.helpers,
             notes: form.notes || null,
             weatherSnapshotId: null,
@@ -254,7 +259,7 @@ export function useSaveRetro(): {
           startedAt,
           endedAt,
           peakSeverity,
-          symptomTags: form.symptomTags,
+          symptomTags,
           helpers: form.helpers,
           notes: form.notes || null,
         });

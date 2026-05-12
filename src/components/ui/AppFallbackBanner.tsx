@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { usePalette } from '@/theme/useTheme';
 
 type AppFallbackBannerProps = {
   message: string;
@@ -12,6 +13,7 @@ type AppFallbackBannerProps = {
  * may not fire (spec-gap G11). Dismissable by the user.
  */
 export function AppFallbackBanner({ message, testID }: AppFallbackBannerProps) {
+  const palette = usePalette();
   const [dismissed, setDismissed] = useState(false);
 
   if (dismissed) return null;
@@ -23,7 +25,7 @@ export function AppFallbackBanner({ message, testID }: AppFallbackBannerProps) {
       accessibilityRole="alert"
       accessibilityLiveRegion="polite"
     >
-      <Ionicons name="notifications-outline" size={20} color="var(--accent-primary)" />
+      <Ionicons name="notifications-outline" size={20} color={palette.accentPrimary} />
       <Text className="flex-1 text-text-primary text-sm">{message}</Text>
       <Pressable
         onPress={() => setDismissed(true)}
@@ -31,7 +33,7 @@ export function AppFallbackBanner({ message, testID }: AppFallbackBannerProps) {
         accessibilityLabel="Dismiss notification"
         hitSlop={12}
       >
-        <Ionicons name="close" size={18} color="var(--text-muted)" />
+        <Ionicons name="close" size={18} color={palette.textMuted} />
       </Pressable>
     </View>
   );

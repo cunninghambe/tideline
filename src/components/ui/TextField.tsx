@@ -1,5 +1,6 @@
 import React from 'react';
 import { View, Text, TextInput } from 'react-native';
+import { usePalette } from '@/theme/useTheme';
 
 type TextFieldProps = {
   value: string;
@@ -22,6 +23,7 @@ export function TextField({
   ariaLabel,
   testID,
 }: TextFieldProps) {
+  const palette = usePalette();
   const inputId = label ?? ariaLabel ?? 'text-field';
 
   return (
@@ -38,7 +40,7 @@ export function TextField({
         value={value}
         onChangeText={onChangeText}
         placeholder={placeholder}
-        placeholderTextColor="var(--text-muted)"
+        placeholderTextColor={palette.textMuted}
         multiline={multiline}
         maxLength={maxLength}
         testID={testID}
