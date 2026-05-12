@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -6,15 +6,15 @@ import {
   Alert,
   Pressable,
 } from 'react-native';
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Stepper } from '@/components/ui/Stepper';
-import { insert } from '@/features/meds/repo';
-import { MEDS_QUERY_KEY } from '@/features/meds/hooks';
+import { insert, getById, update } from '@/features/meds/repo';
+import { MEDS_QUERY_KEY, MED_DETAIL_QUERY_KEY } from '@/features/meds/hooks';
 import type { MedClass } from '@/types';
 
 const CLASS_OPTIONS: { value: MedClass; label: string }[] = [
@@ -36,6 +36,8 @@ const TYPE_OPTIONS: { value: 'rescue' | 'preventive'; label: string }[] = [
 
 export default function MedsAddScreen() {
   const queryClient = useQueryClient();
+  const { editId } = useLocalSearchParams<{ editId?: string }>();
+  const isEdit = Boolean(editId);
   const [brandName, setBrandName] = useState('');
   const [medClass, setMedClass] = useState<MedClass>('nsaid');
   const [defaultDose, setDefaultDose] = useState('');
@@ -43,6 +45,19 @@ export default function MedsAddScreen() {
   const [pillsRemaining, setPillsRemaining] = useState(30);
   const [refillThreshold, setRefillThreshold] = useState(7);
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!editId) return;
+    const result = getById(editId);
+    if (!result.ok || !result.value) return;
+    const m = result.value;
+    setBrandName(m.brandName);
+    setMedClass(m.medicationClass);
+    setDefaultDose(m.defaultDose);
+    setType(m.type);
+    setPillsRemaining(m.pillsRemaining ?? 30);
+    setRefillThreshold(m.refillThreshold);
+  }, [editId]);
 
   function handleCancel() {
     router.back();
@@ -59,15 +74,24 @@ export default function MedsAddScreen() {
     }
 
     setSaving(true);
-    const result = insert({
-      brandName: brandName.trim(),
-      medicationClass: medClass,
-      defaultDose: defaultDose.trim(),
-      type,
-      pillsRemaining,
-      refillThreshold,
-      active: true,
-    });
+    const result = isEdit && editId
+      ? update(editId, {
+          brandName: brandName.trim(),
+          medicationClass: medClass,
+          defaultDose: defaultDose.trim(),
+          type,
+          pillsRemaining,
+          refillThreshold,
+        })
+      : insert({
+          brandName: brandName.trim(),
+          medicationClass: medClass,
+          defaultDose: defaultDose.trim(),
+          type,
+          pillsRemaining,
+          refillThreshold,
+          active: true,
+        });
     setSaving(false);
 
     if (!result.ok) {
@@ -76,6 +100,9 @@ export default function MedsAddScreen() {
     }
 
     await queryClient.invalidateQueries({ queryKey: MEDS_QUERY_KEY });
+    if (isEdit && editId) {
+      await queryClient.invalidateQueries({ queryKey: MED_DETAIL_QUERY_KEY(editId) });
+    }
     router.back();
   }
 
@@ -95,7 +122,7 @@ export default function MedsAddScreen() {
           className="text-text-primary text-xl font-semibold"
           accessibilityRole="header"
         >
-          Add medication
+          {isEdit ? 'Edit medication' : 'Add medication'}
         </Text>
         {/* Spacer to centre heading */}
         <View style={{ minWidth: 60 }} />

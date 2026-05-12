@@ -6,13 +6,15 @@ import {
   Pressable,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { parseISO, isToday, isYesterday } from 'date-fns';
+import { parseISO, isToday, isYesterday, addDays, subDays, format } from 'date-fns';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 
 import { usePalette } from '@/theme/useTheme';
 import { emptyCopy } from '@/copy';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
-import { useDayDetail } from '@/features/calendar/hooks';
+import { useDayDetail, type DoseWithMed } from '@/features/calendar/hooks';
 import { useWeatherForDate } from '@/features/weather/hooks';
 import { formatTime, formatDate, formatDuration } from '@/lib/format';
 
@@ -105,9 +107,10 @@ function WeatherSummary({ date }: { date: string }) {
 type MigraneSectionProps = {
   migraine: MigraineRow;
   onEdit: () => void;
+  doses: DoseWithMed[];
 };
 
-function MigraineSection({ migraine, onEdit }: MigraneSectionProps) {
+function MigraineSection({ migraine, onEdit, doses }: MigraneSectionProps) {
   const palette = usePalette();
   const start = migraine.startedAt instanceof Date ? migraine.startedAt : new Date(migraine.startedAt);
   const end = migraine.endedAt
@@ -171,6 +174,27 @@ function MigraineSection({ migraine, onEdit }: MigraneSectionProps) {
                   size="sm"
                 />
               ))}
+            </View>
+          </View>
+        )}
+
+        {/* Meds taken */}
+        {doses.length > 0 && (
+          <View>
+            <Text style={{ color: palette.textMuted, fontSize: 12, marginBottom: 6 }}>Meds taken</Text>
+            <View style={{ gap: 4 }}>
+              {doses.map((d) => {
+                const taken = d.takenAt instanceof Date ? d.takenAt : new Date(d.takenAt);
+                const label = d.medication
+                  ? `${d.medication.brandName} ${d.doseAmount}`
+                  : `Dose ${d.doseAmount}`;
+                return (
+                  <Text key={d.id} style={{ color: palette.textPrimary, fontSize: 14 }}>
+                    {label} · {formatTime(taken)}
+                    {d.effectivenessRating ? ` · ${d.effectivenessRating.replace('_', ' ')}` : ''}
+                  </Text>
+                );
+              })}
             </View>
           </View>
         )}
@@ -306,9 +330,24 @@ export default function DayDetailScreen() {
     );
   }
 
-  const { migraine, checkin, cyclePhase } = data ?? { migraine: null, checkin: null, cyclePhase: null };
+  const { migraine, checkin, cyclePhase, doses } = data ?? { migraine: null, checkin: null, cyclePhase: null, doses: [] };
+
+  const goToDay = (delta: number) => {
+    if (!date) return;
+    const next = delta > 0 ? addDays(parseISO(date), delta) : subDays(parseISO(date), Math.abs(delta));
+    router.replace(`/day/${format(next, 'yyyy-MM-dd')}`);
+  };
+
+  const swipeGesture = Gesture.Pan()
+    .activeOffsetX([-30, 30])
+    .failOffsetY([-20, 20])
+    .onEnd((e) => {
+      if (e.translationX < -50) runOnJS(goToDay)(1);
+      else if (e.translationX > 50) runOnJS(goToDay)(-1);
+    });
 
   return (
+    <GestureDetector gesture={swipeGesture}>
     <ScrollView
       style={{ flex: 1, backgroundColor: palette.bg }}
       contentContainerStyle={{ padding: 16, paddingBottom: 80 }}
@@ -334,6 +373,7 @@ export default function DayDetailScreen() {
       {migraine ? (
         <MigraineSection
           migraine={migraine}
+          doses={doses}
           onEdit={() => router.push(`/log/retro?id=${migraine.id}`)}
         />
       ) : (
@@ -379,5 +419,6 @@ export default function DayDetailScreen() {
         </View>
       )}
     </ScrollView>
+    </GestureDetector>
   );
 }

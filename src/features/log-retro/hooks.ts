@@ -175,6 +175,8 @@ type SaveUpdateData = {
   mode: 'update';
   migraineId: string;
   form: RetroFormState;
+  /** When set, the food/water section of the form is persisted to that date's check-in. */
+  inlineCheckinDate?: string | null;
 };
 
 /** Flushes queued doses to the database once we have the migraine id. */
@@ -217,7 +219,8 @@ export function useSaveRetro(): {
         if (data.mode === 'insert') {
           const result = migraineRepo.insertCompleted({
             startedAt,
-            endedAt: endedAt ?? new Date(),
+            // Honor "still going" — endedAt stays null so the row is treated as active.
+            endedAt,
             peakSeverity,
             symptomTags,
             helpers: form.helpers,
@@ -265,6 +268,30 @@ export function useSaveRetro(): {
         });
 
         if (!updateResult.ok) return { ok: false, error: updateResult.error.message };
+
+        // Persist food/water changes to the day's check-in (G7 fix).
+        if (
+          data.inlineCheckinDate &&
+          (form.waterCups > 0 || form.foodTagIds.length > 0)
+        ) {
+          const existing = checkinsRepo.getByDate(data.inlineCheckinDate);
+          const existingCheckin = existing.ok ? existing.value : null;
+          checkinsRepo.upsert(data.inlineCheckinDate, {
+            sleepHours: existingCheckin?.sleepHours ?? null,
+            sleepQuality: existingCheckin?.sleepQuality ?? null,
+            stressLevel: existingCheckin?.stressLevel ?? null,
+            waterCups: form.waterCups || existingCheckin?.waterCups || null,
+            caffeineCups: existingCheckin?.caffeineCups ?? null,
+            foodTagIds:
+              form.foodTagIds.length > 0
+                ? form.foodTagIds
+                : existingCheckin?.foodTagIds ?? [],
+            notes: existingCheckin?.notes ?? null,
+            syncedAt: null,
+            pooledAt: null,
+          });
+          queryClient.invalidateQueries({ queryKey: ['checkin', data.inlineCheckinDate] });
+        }
 
         // Flush any newly queued doses for the edit
         flushQueuedDoses(data.migraineId, form.queuedDoses);

@@ -16,7 +16,7 @@ const KNOWN_RESPONSE: OpenMeteoResponse = {
     temperature_2m: 18.5,
     relative_humidity_2m: 72,
     surface_pressure: 1018.3,
-    wind_speed_10m: 5.2,        // m/s → kph = 18.72
+    wind_speed_10m: 18.7,       // Open-Meteo default unit is km/h
     uv_index: 3.2,
     weather_code: 1,
   },
@@ -47,10 +47,9 @@ describe('mapToSnapshot', () => {
     expect(snap.pressureChange24hHpa).toBeCloseTo(3.2, 5);
   });
 
-  it('converts wind speed from m/s to kph', () => {
+  it('stores wind speed in km/h (Open-Meteo default unit)', () => {
     const snap = mapToSnapshot(KNOWN_RESPONSE, H3_CELL);
-    // 5.2 * 3.6 = 18.72
-    expect(snap.windKph).toBeCloseTo(18.72, 5);
+    expect(snap.windKph).toBeCloseTo(18.7, 5);
   });
 
   it('stores uv_index directly', () => {

@@ -23,8 +23,7 @@ export default function SettingsScreen() {
   const cycleEnabled = useSetting('cycle.tracking_enabled', 'true') === 'true';
   const { mutate: setSettingMutate } = useSetSetting();
 
-  const version =
-    (Constants.expoConfig?.version ?? Constants.manifest?.version ?? '1.0.0') as string;
+  const version = Constants.expoConfig?.version ?? '1.0.0';
 
   const communityBadge = communityEnabled ? 'ON' : 'OFF';
 

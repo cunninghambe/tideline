@@ -34,14 +34,17 @@ import type { HelperTag, SymptomTag } from '@/db/schema/migraines';
 // Helpers to build form state from an existing migraine row (edit mode)
 // ---------------------------------------------------------------------------
 
-function formFromMigraineRow(row: {
-  startedAt: Date;
-  endedAt: Date | null;
-  peakSeverity: number;
-  symptomTags: SymptomTag[];
-  helpers: HelperTag[];
-  notes: string | null;
-}): RetroFormState {
+function formFromMigraineRow(
+  row: {
+    startedAt: Date;
+    endedAt: Date | null;
+    peakSeverity: number;
+    symptomTags: SymptomTag[];
+    helpers: HelperTag[];
+    notes: string | null;
+  },
+  checkinForStartDate: { waterCups: number | null; foodTagIds: string[] } | null,
+): RetroFormState {
   const startDate = toISODate(row.startedAt);
   const endDate = row.endedAt ? toISODate(row.endedAt) : startDate;
   return {
@@ -55,8 +58,8 @@ function formFromMigraineRow(row: {
     peakSeverity: row.peakSeverity === 0 ? 5 : row.peakSeverity,
     auraOnly: row.peakSeverity === 0,
     symptomTags: row.symptomTags,
-    waterCups: 0,
-    foodTagIds: [],
+    waterCups: checkinForStartDate?.waterCups ?? 0,
+    foodTagIds: checkinForStartDate?.foodTagIds ?? [],
     helpers: row.helpers,
     notes: row.notes ?? '',
     queuedDoses: [],
@@ -95,14 +98,18 @@ export default function LogRetroScreen() {
   // Check-in for the start date (to show read-only or inline)
   const { data: checkinForDate } = useCheckinForDate(form.startDate);
 
-  // In edit mode: prefill form from the existing row once loaded
+  // In edit mode: prefill form from the existing row once loaded.
+  // Once we have the migraine, also wait for its day's check-in to load so
+  // food/water aren't lost on subsequent saves (G7 fix).
+  const startDateForEdit = existingMigraine ? toISODate(existingMigraine.startedAt) : null;
+  const { data: editCheckin } = useCheckinForDate(startDateForEdit ?? '');
   useEffect(() => {
     if (isEditMode && existingMigraine) {
-      const prefilled = formFromMigraineRow(existingMigraine);
+      const prefilled = formFromMigraineRow(existingMigraine, editCheckin ?? null);
       setForm(prefilled);
       setInitialForm(prefilled);
     }
-  }, [isEditMode, existingMigraine]);
+  }, [isEditMode, existingMigraine, editCheckin]);
 
   function handleCancel() {
     if (hasChanged(form, initialForm)) {
@@ -117,7 +124,12 @@ export default function LogRetroScreen() {
 
     let result;
     if (isEditMode && editId) {
-      result = save({ mode: 'update', migraineId: editId, form });
+      result = save({
+        mode: 'update',
+        migraineId: editId,
+        form,
+        inlineCheckinDate: form.startDate,
+      });
     } else {
       result = save({
         mode: 'insert',

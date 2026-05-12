@@ -10,6 +10,8 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { format, addMonths, subMonths } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
+import { Gesture, GestureDetector } from 'react-native-gesture-handler';
+import { runOnJS } from 'react-native-reanimated';
 
 import { usePalette } from '@/theme/useTheme';
 import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
@@ -318,18 +320,28 @@ export default function CalendarScreen() {
           </View>
         </View>
 
-        {/* Calendar grid */}
-        <View style={{ paddingHorizontal: 4 }}>
-          <CalendarMonthGrid
-            yearMonth={yearMonth}
-            migraines={migraines}
-            checkins={checkinRows}
-            cycleMarkers={cycleMarkers}
-            onDayPress={(ds) => router.push(`/day/${ds}`)}
-            onDayLongPress={(ds) => router.push(`/log/retro?date=${ds}`)}
-            testID="calendar-month-grid"
-          />
-        </View>
+        {/* Calendar grid — swipe horizontally to change month */}
+        <GestureDetector
+          gesture={Gesture.Pan()
+            .activeOffsetX([-30, 30])
+            .failOffsetY([-20, 20])
+            .onEnd((e) => {
+              if (e.translationX < -50) runOnJS(goToNextMonth)();
+              else if (e.translationX > 50) runOnJS(goToPrevMonth)();
+            })}
+        >
+          <View style={{ paddingHorizontal: 4 }}>
+            <CalendarMonthGrid
+              yearMonth={yearMonth}
+              migraines={migraines}
+              checkins={checkinRows}
+              cycleMarkers={cycleMarkers}
+              onDayPress={(ds) => router.push(`/day/${ds}`)}
+              onDayLongPress={(ds) => router.push(`/log/retro?date=${ds}`)}
+              testID="calendar-month-grid"
+            />
+          </View>
+        </GestureDetector>
 
         {/* Empty state — shown when no migraines ever logged */}
         {!migrainesLoading && !hasAnyMigraine && (

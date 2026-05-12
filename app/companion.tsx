@@ -161,11 +161,14 @@ export default function CompanionScreen() {
   const severity = migraine?.peakSeverity ?? 1;
 
   return (
+    // Companion mode is always dim per spec §6.1 "Maximum darkness."
+    // A higher-opacity duringTint overlay knocks light palettes much darker
+    // while keeping the palette's character. Text contrast remains acceptable
+    // because text is rendered above the overlay.
     <View className="flex-1" style={{ backgroundColor: palette.bg }}>
-      {/* Low-opacity during-tint overlay (~7%) */}
       <View
         className="absolute inset-0"
-        style={{ backgroundColor: palette.duringTint, opacity: 0.07 }}
+        style={{ backgroundColor: palette.duringTint, opacity: 0.45 }}
         pointerEvents="none"
       />
 

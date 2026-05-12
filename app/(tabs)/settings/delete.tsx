@@ -5,6 +5,7 @@ import { useRouter } from 'expo-router';
 import { Button } from '@/components/ui/Button';
 import { TextField } from '@/components/ui/TextField';
 import { deleteAll } from '@/features/settings/deleter';
+import { FEATURE_FLAGS } from '@/config/feature-flags';
 
 const CONFIRM_PHRASE = 'DELETE';
 
@@ -49,25 +50,38 @@ export default function DeleteScreen() {
             Local data on this phone — deleted
           </Text>
         </View>
-        <View className="flex-row items-start gap-2">
-          <Text className="text-accent-primary">✓</Text>
-          <Text className="text-text-primary text-sm flex-1">
-            Your cloud backup — deleted
-          </Text>
-        </View>
-        <View className="flex-row items-start gap-2">
-          <Text className="text-accent-primary">✓</Text>
-          <Text className="text-text-primary text-sm flex-1">
-            Your account — deleted
-          </Text>
-        </View>
+        {FEATURE_FLAGS.cloudSync && (
+          <>
+            <View className="flex-row items-start gap-2">
+              <Text className="text-accent-primary">✓</Text>
+              <Text className="text-text-primary text-sm flex-1">
+                Your cloud backup — deleted
+              </Text>
+            </View>
+            <View className="flex-row items-start gap-2">
+              <Text className="text-accent-primary">✓</Text>
+              <Text className="text-text-primary text-sm flex-1">
+                Your account — deleted
+              </Text>
+            </View>
+          </>
+        )}
       </View>
 
-      <Text className="text-text-muted text-sm">
-        Anonymised aggregated data already in the community pool cannot be
-        extracted, since it was anonymised at upload. We can confirm no future
-        contributions will be made.
-      </Text>
+      {!FEATURE_FLAGS.cloudSync && (
+        <Text className="text-text-muted text-sm">
+          Cloud backup and account aren&apos;t enabled yet. Only local data will be
+          deleted.
+        </Text>
+      )}
+
+      {FEATURE_FLAGS.communityFeed && (
+        <Text className="text-text-muted text-sm">
+          Anonymised aggregated data already in the community pool cannot be
+          extracted, since it was anonymised at upload. We can confirm no future
+          contributions will be made.
+        </Text>
+      )}
 
       <TextField
         value={input}

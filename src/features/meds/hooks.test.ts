@@ -5,10 +5,24 @@ describe('deriveEffectivenessStats', () => {
   it('returns zeros for an empty list', () => {
     const stats = deriveEffectivenessStats([]);
     expect(stats.totalDoses).toBe(0);
+    expect(stats.attacksUsedIn).toBe(0);
     expect(stats.helpedCount).toBe(0);
     expect(stats.kindOfCount).toBe(0);
     expect(stats.didntHelpCount).toBe(0);
     expect(stats.avgTimeToReliefMinutes).toBeNull();
+  });
+
+  it('counts distinct migraine events for attacksUsedIn (per spec §10.3)', () => {
+    const doses = [
+      { migraineEventId: 'attack-1', effectivenessRating: 'helped', timeToReliefMinutes: 60 },
+      { migraineEventId: 'attack-1', effectivenessRating: 'helped', timeToReliefMinutes: 60 },
+      { migraineEventId: 'attack-2', effectivenessRating: 'helped', timeToReliefMinutes: null },
+      { migraineEventId: 'attack-3', effectivenessRating: 'kind_of', timeToReliefMinutes: null },
+      { migraineEventId: null, effectivenessRating: 'helped', timeToReliefMinutes: null },
+    ];
+    const stats = deriveEffectivenessStats(doses);
+    expect(stats.totalDoses).toBe(5);
+    expect(stats.attacksUsedIn).toBe(3);
   });
 
   it('counts ratings correctly with mixed ratings', () => {

@@ -87,7 +87,7 @@ export function mapToSnapshot(r: OpenMeteoResponse, h3Cell: string): WeatherSnap
     humidityPct: r.current.relative_humidity_2m,
     pressureHpa: pressureNow,
     pressureChange24hHpa: pressureNow - pressure24hAgo,
-    windKph: r.current.wind_speed_10m * 3.6,
+    windKph: r.current.wind_speed_10m,
     uvIndex: r.current.uv_index,
     pollenIndex: null,
     source: 'open-meteo',

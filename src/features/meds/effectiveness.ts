@@ -2,6 +2,8 @@
 
 export type EffectivenessStats = {
   totalDoses: number;
+  /** Distinct migraine events this med was used in (per spec §10.3). */
+  attacksUsedIn: number;
   helpedCount: number;
   kindOfCount: number;
   didntHelpCount: number;
@@ -10,6 +12,7 @@ export type EffectivenessStats = {
 };
 
 type DoseSummary = {
+  migraineEventId?: string | null;
   effectivenessRating: string | null | undefined;
   timeToReliefMinutes: number | null | undefined;
 };
@@ -19,6 +22,7 @@ export function deriveEffectivenessStats(doses: DoseSummary[]): EffectivenessSta
   let kindOfCount = 0;
   let didntHelpCount = 0;
   const reliefTimes: number[] = [];
+  const attackIds = new Set<string>();
 
   for (const dose of doses) {
     if (dose.effectivenessRating === 'helped') helpedCount++;
@@ -28,6 +32,8 @@ export function deriveEffectivenessStats(doses: DoseSummary[]): EffectivenessSta
     if (dose.timeToReliefMinutes != null) {
       reliefTimes.push(dose.timeToReliefMinutes);
     }
+
+    if (dose.migraineEventId) attackIds.add(dose.migraineEventId);
   }
 
   const avgTimeToReliefMinutes =
@@ -37,6 +43,7 @@ export function deriveEffectivenessStats(doses: DoseSummary[]): EffectivenessSta
 
   return {
     totalDoses: doses.length,
+    attacksUsedIn: attackIds.size,
     helpedCount,
     kindOfCount,
     didntHelpCount,

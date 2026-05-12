@@ -17,7 +17,8 @@ type InsertActiveData = {
 
 type InsertCompletedData = {
   startedAt: Date;
-  endedAt: Date;
+  /** Set to null when the user logs a retro-mode entry as "still going". */
+  endedAt: Date | null;
   peakSeverity: number;
   symptomTags: SymptomTag[];
   helpers: HelperTag[];

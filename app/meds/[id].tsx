@@ -14,6 +14,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { usePalette } from '@/theme/useTheme';
+import { useAllMigraineEvents } from '@/features/migraines/hooks';
+import { setSetting } from '@/features/settings/store';
 import {
   useMedicationDetail,
   useEffectivenessStats,
@@ -188,6 +190,8 @@ export default function MedDetailScreen() {
   const { data: stats } = useEffectivenessStats(id ?? '');
   const { data: recentDoses = [] } = useRecentDoses(id ?? '', 5);
   const { data: allDoses = [] } = useAllDoses(id ?? '');
+  const { data: allMigraines = [] } = useAllMigraineEvents();
+  const totalMigraines = allMigraines.length;
   const [selectedDose, setSelectedDose] = useState<(typeof recentDoses)[0] | null>(null);
 
   async function handleRefillConfirm(newCount: number) {
@@ -202,7 +206,9 @@ export default function MedDetailScreen() {
   }
 
   function handleSnooze() {
-    // Snooze: no action needed in v1 — the next app open will re-check
+    if (!id) return;
+    const snoozeUntil = new Date(Date.now() + 3 * 24 * 60 * 60 * 1000).toISOString();
+    setSetting(`meds.refill_snooze_until.${id}`, snoozeUntil);
     Alert.alert('Snoozed', "We'll remind you again in 3 days.");
   }
 
@@ -291,7 +297,7 @@ export default function MedDetailScreen() {
         </View>
 
         {/* Effectiveness section */}
-        <EffectivenessSection stats={stats} />
+        <EffectivenessSection stats={stats} totalMigraines={totalMigraines} />
 
         {/* Refill section */}
         <RefillSection
@@ -361,14 +367,16 @@ export default function MedDetailScreen() {
 type EffectivenessSectionProps = {
   stats: {
     totalDoses: number;
+    attacksUsedIn: number;
     helpedCount: number;
     kindOfCount: number;
     didntHelpCount: number;
     avgTimeToReliefMinutes: number | null;
   } | undefined;
+  totalMigraines: number;
 };
 
-function EffectivenessSection({ stats }: EffectivenessSectionProps) {
+function EffectivenessSection({ stats, totalMigraines }: EffectivenessSectionProps) {
   return (
     <View className="gap-3">
       <Text className="text-text-primary text-xl font-semibold">Effectiveness</Text>
@@ -377,9 +385,10 @@ function EffectivenessSection({ stats }: EffectivenessSectionProps) {
       ) : (
         <View className="bg-surface border border-border rounded-2xl p-4 gap-2">
           <Text className="text-text-primary text-sm">
-            Used {stats.totalDoses} time{stats.totalDoses !== 1 ? 's' : ''}.{' '}
-            &ldquo;Helped&rdquo; in {stats.helpedCount}, &ldquo;kind of&rdquo; in{' '}
-            {stats.kindOfCount}, &ldquo;didn&apos;t help&rdquo; in {stats.didntHelpCount}.
+            Used in {stats.attacksUsedIn} of your last {totalMigraines} attack
+            {totalMigraines !== 1 ? 's' : ''}. &ldquo;Helped&rdquo; in {stats.helpedCount},
+            &ldquo;kind of&rdquo; in {stats.kindOfCount}, &ldquo;didn&apos;t help&rdquo; in{' '}
+            {stats.didntHelpCount}.
           </Text>
           {stats.avgTimeToReliefMinutes != null && (
             <Text className="text-text-secondary text-sm">

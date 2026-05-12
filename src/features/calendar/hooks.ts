@@ -1,7 +1,10 @@
 import { useMemo, useCallback } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useFocusEffect } from 'expo-router';
+import { eq } from 'drizzle-orm';
 
+import { db } from '@/db/client';
+import { medicationDoses, medications } from '@/db/schema';
 import { getByMonth } from '@/features/migraines/repo';
 import { getByDate } from '@/features/checkins/repo';
 import { phaseForDate } from '@/features/cycle/repo';
@@ -9,7 +12,9 @@ import type { CyclePhase } from '@/features/cycle/repo';
 import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
 import { getMonthGrid, toDateString } from './utils';
 
-import type { MigraineRow, DailyCheckinRow } from '@/types';
+import type { MigraineRow, DailyCheckinRow, MedicationDoseRow, MedicationRow } from '@/types';
+
+export type DoseWithMed = MedicationDoseRow & { medication: MedicationRow | null };
 
 // ---------------------------------------------------------------------------
 // Query key factories
@@ -42,6 +47,7 @@ export type DayDetail = {
   migraine: MigraineRow | null;
   checkin: DailyCheckinRow | null;
   cyclePhase: CyclePhase | null;
+  doses: DoseWithMed[];
 };
 
 /** Composed view: migraine + check-in + cycle phase for a single date. Refetches on focus. */
@@ -76,7 +82,24 @@ export function useDayDetail(date: string): { data: DayDetail | undefined; isLoa
       const cycleResult = phaseForDate(date);
       const cyclePhase = cycleResult.ok ? cycleResult.value : null;
 
-      return { migraine, checkin, cyclePhase };
+      let doses: DoseWithMed[] = [];
+      if (migraine) {
+        const doseRows = db
+          .select()
+          .from(medicationDoses)
+          .where(eq(medicationDoses.migraineEventId, migraine.id))
+          .all();
+        doses = doseRows.map((d) => {
+          const med = db
+            .select()
+            .from(medications)
+            .where(eq(medications.id, d.medicationId))
+            .get();
+          return { ...d, medication: med ?? null };
+        });
+      }
+
+      return { migraine, checkin, cyclePhase, doses };
     },
     staleTime: 0,
   });

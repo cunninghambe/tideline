@@ -67,9 +67,6 @@ export default function InsightsScreen() {
           >
             {emptyCopy.insightsNotEnoughData}
           </Text>
-          <Text className="text-text-muted text-sm leading-5 text-center mt-3">
-            Keep logging — we&#39;ll show you what we find once there&#39;s enough to be honest about.
-          </Text>
         </View>
       </ScrollView>
     );
