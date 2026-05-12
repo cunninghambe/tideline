@@ -169,7 +169,18 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 *(meds appends here)*
 
 ### weather
-*(weather appends here)*
+
+**Vitest config added:** `vitest.config.ts` at worktree root — sets `environment: 'node'`, `globals: true`, and resolves `@/` → `./src`. Run with `npx vitest run` from the worktree directory (not `pnpm vitest run` from the repo root, which doesn't find the worktree config).
+
+**Background refresh deferred:** The 4-hour background pull (spec §7 pull cadence) requires native background task support. Not implemented in v1. When `expo-task-manager` / `expo-background-fetch` are added in Phase 2, wire them to call `captureWeatherNow()` with a 4-hour interval. Gap: app only pulls on foreground (if stale) and when log-active calls `captureWeatherNow()` directly.
+
+**Privacy boundary tested:** Integration test explicitly asserts that `weatherSnapshots` rows have no `latitude`/`longitude` properties, and that `deviceLocations.weatherSnapshotId` matches the snapshot row id. This is the canonical test for the privacy contract.
+
+**`weather_unavailable` flag:** `WeatherSnapshotWithFlag` in `src/features/weather/types.ts` extends `WeatherSnapshotRow` with an optional non-persisted `weather_unavailable: true` property. Callers (log-active, log-retro) should check this flag and show a "weather unavailable" badge. The flag is never stored in the DB.
+
+**`useCurrentWeather` auto-trigger pattern:** Uses a shadow query (`['weather', 'current', 'auto']`) to trigger `captureWeatherNow()` on mount when data is stale. The shadow query's result is discarded; only the subsequent invalidation of `['weather', 'current']` matters.
+
+**`useWeatherForDate` date boundary:** Filters `capturedAt >= start` in SQL; the `< end` check is done in JS. This avoids an unused `lt` import and keeps the Drizzle query simple.
 
 ### insights
 *(insights appends here)*
