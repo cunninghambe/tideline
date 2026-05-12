@@ -127,7 +127,20 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 ## Per-agent notes (each agent appends here)
 
 ### foundation
-*(foundation appends discoveries here)*
+
+**New dependency added:** `@react-native-community/slider@5.0.1` — installed via `npx expo install @react-native-community/slider`. Required for `src/components/ui/Slider.tsx`. No suitable RN slider primitive in the locked stack.
+
+**Drizzle 0.45 migrator import:** `migrate` is NOT exported from `drizzle-orm/expo-sqlite` index. Must be imported from `drizzle-orm/expo-sqlite/migrator` directly. The generated `migrations.js` barrel (expo driver) exports `{ default: { journal, migrations } }` — client requires it with `require().default`.
+
+**Drizzle JSON columns:** Do NOT `JSON.stringify` values before inserting into `.json` mode columns. Drizzle handles serialization. Pass typed arrays/objects directly.
+
+**Zod 4 schema re-export:** `export type Foo = z.infer<typeof Foo>` alongside `export const Foo = z.object(...)` triggers `@typescript-eslint/no-redeclare`. Suppressed with `eslint-disable-next-line`. Kept the same name to match spec §7 verbatim.
+
+**NativeWind CSS vars in native style props:** `minimumTrackTintColor`/`thumbTintColor` in `@react-native-community/slider` do not resolve CSS var strings at runtime on RN. Feature agents implementing the slider should use `usePalette()` to get hex values directly for these props.
+
+**`migrate` function is synchronous in drizzle-orm/expo-sqlite:** The Drizzle expo-sqlite migrator's `migrate()` is sync under the hood (it calls `db.dialect.migrate`), but the function signature is `async`. Wrap with `await` in `runMigrations()` for forwards-compatibility.
+
+**`meds/[id]` and `app/(tabs)/settings/index.tsx`:** Created `settings/index.tsx` as placeholder. Settings agent owns the full `settings/` sub-tree and will add sub-routes (`theme.tsx`, `notifications.tsx`, etc.) as they implement them.
 
 ### calendar
 *(calendar appends here)*

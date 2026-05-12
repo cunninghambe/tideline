@@ -1,11 +1,11 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 
-/** Placeholder — replaced by calendar agent */
-export default function CalendarScreen() {
+/** Placeholder — replaced by log-active agent */
+export default function LogEndScreen() {
   return (
     <View className="flex-1 bg-bg items-center justify-center">
-      <Text className="text-text-primary">placeholder: calendar</Text>
+      <Text className="text-text-primary">placeholder: log/end</Text>
     </View>
   );
 }
