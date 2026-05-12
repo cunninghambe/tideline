@@ -264,7 +264,35 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 **`useWeatherForDate` date boundary:** Filters `capturedAt >= start` in SQL; the `< end` check is done in JS. This avoids an unused `lt` import and keeps the Drizzle query simple.
 
 ### insights
-*(insights appends here)*
+
+**Files created:**
+- `src/features/insights/analytics.ts` — pure correlation functions (no React, no DB). All 6 types: pressure drop, cycle phase, food, sleep, stress, caffeine.
+- `src/features/insights/hooks.ts` — `useCorrelations()`, `useWeeklyBrief(weekStart)`, `useTopHelpers(limit)`, `useMonthlyNarrative(yearMonth)`.
+- `src/features/insights/components/InsightCard.tsx` — single correlation card.
+- `src/features/insights/components/WeeklyBriefCard.tsx` — on-device weekly summary.
+- `src/features/insights/components/AINarrativeCard.tsx` — AI narrative card (gated).
+- `src/features/insights/analytics.test.ts` — 21 unit tests for all correlation functions.
+- `src/features/insights/hooks.test.ts` — 6 unit tests for `useTopHelpers` ranking logic.
+- `app/(tabs)/insights.tsx` — replaces placeholder. Shows empty state when <5 completed migraines.
+
+**G9 (pollen always null):** No pollen cards are rendered. The correlation set covers the 6 non-pollen factors only.
+
+**`monthlyAINarrative` flag:** `useMonthlyNarrative` returns `{ isUnavailable: true, narrative: null, generate: null }` when the flag is false. `AINarrativeCard` renders a "Generate AI narrative" button that opens a `Sheet` with the copy "Cloud sync isn't enabled yet — coming next session." Flipping the flag to `true` activates real behavior with no UI changes needed.
+
+**Correlation null threshold:** All correlation functions return `null` if fewer than 5 _completed_ migraines (endedAt != null). Active (ongoing) migraines are excluded from all calculations.
+
+**Confidence levels:** low if N<10, medium if 10≤N<30, high if N≥30. Applied to completed migraine count (same across all functions for consistency).
+
+**Sleep lift edge case:** When `normalSleep.rate` (6–8h bucket) is 0, lift is computed as `lowSleep.rate * 10` (a sentinel meaning "maximum") rather than 0 to ensure the sort order correctly surfaces this as a stronger signal.
+
+**Food correlation uses check-in dates as migraine-day proxy:** The function compares food-tag appearance on days _when the migraine started_ (matching the check-in date to the migraine `startedAt` date). This is conservative — some migraines begin past midnight but the check-in is for the calendar day.
+
+**`useTopHelpers` medication aggregation:** Medication doses with `effectivenessRating === 'helped' | 'kind_of'` both count as "helped" for the `'medication'` helper tag. `'didnt_help'` and `'unsure'` add to totalCount only. This matches the spec wording "helpers ranked by self-reported effectiveness."
+
+**Weekly brief uses Sunday-start weeks** via `startOfWeek(weekStart, { weekStartsOn: 0 })` per spec requirement. Stress notes include both the migraine day and the day before if stress ≥ 4.
+
+**What insights exports for companion (Wave 2 sibling):**
+- `@/features/insights/hooks` → `useTopHelpers(limit: number)` — returns `TopHelper[]` sorted by help rate descending.
 
 ### settings
 
