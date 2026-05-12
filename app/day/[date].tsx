@@ -13,6 +13,7 @@ import { emptyCopy } from '@/copy';
 import { Button } from '@/components/ui/Button';
 import { Chip } from '@/components/ui/Chip';
 import { useDayDetail } from '@/features/calendar/hooks';
+import { useWeatherForDate } from '@/features/weather/hooks';
 import { formatTime, formatDate, formatDuration } from '@/lib/format';
 
 import type { MigraineRow, DailyCheckinRow } from '@/types';
@@ -76,8 +77,29 @@ function tagToLabel(tag: string): string {
 // Sub-sections
 // ---------------------------------------------------------------------------
 
-function WeatherPlaceholder() {
-  return null; // Weather feature not yet merged — graceful no-op
+function WeatherSummary({ date }: { date: string }) {
+  const palette = usePalette();
+  const snapshot = useWeatherForDate(date);
+  if (!snapshot) return null;
+
+  const change = snapshot.pressureChange24hHpa;
+  const trendArrow =
+    change === null ? '' :
+    change > 1 ? ' ↑' :
+    change < -1 ? ' ↓' : ' →';
+
+  const parts: string[] = [];
+  if (snapshot.temperatureC !== null) parts.push(`${Math.round(snapshot.temperatureC)}°C`);
+  if (snapshot.humidityPct !== null) parts.push(`${Math.round(snapshot.humidityPct)}% humidity`);
+  if (snapshot.pressureHpa !== null) parts.push(`${snapshot.pressureHpa.toFixed(0)} hPa${trendArrow}`);
+
+  if (parts.length === 0) return null;
+
+  return (
+    <Text style={{ color: palette.textSecondary, fontSize: 13 }}>
+      {parts.join(' · ')}
+    </Text>
+  );
 }
 
 type MigraneSectionProps = {
@@ -303,7 +325,7 @@ export default function DayDetailScreen() {
             {cyclePhaseName(cyclePhase)}
           </Text>
         )}
-        <WeatherPlaceholder />
+        <WeatherSummary date={date} />
       </View>
 
       <View style={{ height: 1, backgroundColor: palette.divider, marginBottom: 16 }} />
