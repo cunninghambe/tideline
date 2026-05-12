@@ -234,7 +234,29 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 **vitest + vi.hoisted pattern:** When mocking modules that reference outer `const` variables in `vi.mock()` factories, use `vi.hoisted()` to create the mock functions — otherwise hoisting causes "Cannot access before initialization" errors at runtime.
 
 ### companion
-*(companion appends here)*
+
+**Files created:**
+- `app/companion.tsx` — replaces placeholder; full companion screen
+- `src/features/companion/helpers.ts` — pure logic: `deriveTopHelpers`, `minutesSince` (no RN deps; node-testable)
+- `src/features/companion/hooks.ts` — TanStack Query wrappers: `useActiveMigraine`, `useUpdateSeverity`, `useMedsList`, `useRecordDose`, `useTopHelpersFallback`, `useMinutesSince`
+- `src/features/companion/components/DuringSection.tsx` — "Right now" section with tap-to-update severity sheet
+- `src/features/companion/components/TipBlock.tsx` — personalized helpers + general tips sections
+- `src/features/companion/components/EmergencyBlock.tsx` — "When to seek help" with subtle border treatment
+- `src/features/companion/companion.test.ts` — 16 tests covering helper derivation logic and copy contract
+
+**`useTopHelpersFallback` — insights fallback:** `@/features/insights/hooks` not yet exported by the insights agent. Companion uses `useTopHelpersFallback` which derives helpers locally from `useAllMigraineEvents`. Integration step: once insights agent merges and exports `useTopHelpers(limit)`, replace the call in `app/companion.tsx` to `useTopHelpersFallback` with a direct call to `useTopHelpers(3)` from `@/features/insights/hooks`, and delete `useTopHelpersFallback` from `src/features/companion/hooks.ts`.
+
+**`accessibilityRole="listitem"` not in RN:** `listitem` is not a valid `AccessibilityRole` value in React Native (as of RN 0.81). The list container uses `accessibilityRole="list"`. Individual items do not get a role — this is the correct RN pattern. Spec requirement for "list items read as listitem" cannot be fulfilled at the React Native layer; VoiceOver and TalkBack handle it structurally when parent has `accessibilityRole="list"`.
+
+**Button accessibilityLabel:** Same as onboarding agent — `Button` sets `accessibilityLabel={label}` internally. Companion CTAs satisfy the accessibilityLabel requirement via their `label` prop.
+
+**`recordDose` expects id-less input:** `meds/repo.recordDose` takes `Omit<typeof medicationDoses.$inferInsert, 'id'>` — it generates the id internally via `ulid()`. `useRecordDose` in companion hooks uses a local `RecordDoseInput` type (without id) rather than `MedicationDoseInsert` to match this.
+
+**`mutationFn` must be async:** TanStack Query's `MutationFunction<T, V>` requires the function to return `Promise<T>`. Marking mutation fns `async` fixes the type error even when the inner operation is synchronous.
+
+**Component render tests blocked:** `@testing-library/react-native` v13 requires jest + react-test-renderer, not available in this vitest+node setup (same limitation as calendar and meds agents). Tests in `companion.test.ts` cover pure helper logic and copy contract assertions. Full mount tests (render with empty state → assert empty-state copy, render with seeded data → assert helper lines, assert all 3 CTAs by role+label) require jest-expo — tracked here for integration step.
+
+**`WorseSeveritySheet` draft reset:** `useEffect` resets the slider draft to `currentSeverity` whenever the sheet opens. Prevents stale draft if severity was updated via `DuringSection` while the sheet was closed.
 
 ### onboarding
 
