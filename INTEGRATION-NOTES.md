@@ -143,10 +143,21 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 **`meds/[id]` and `app/(tabs)/settings/index.tsx`:** Created `settings/index.tsx` as placeholder. Settings agent owns the full `settings/` sub-tree and will add sub-routes (`theme.tsx`, `notifications.tsx`, etc.) as they implement them.
 
 ### calendar
-*(calendar appends here)*
+
+**vitest.config.ts created:** No vitest config existed. Added `vitest.config.ts` at repo root with `environment: 'node'` and path alias resolution matching `tsconfig.json`. Tests live at `src/**/*.test.ts`.
+
+**Component render tests blocked by runtime:** `@testing-library/react-native` v13 requires `jest` + `react-test-renderer`, neither of which is installed. The component test in `CalendarMonthGrid.test.ts` tests the pure data-mapping logic (migraine map, checkin set, `dayCellColor` with component-realistic inputs) rather than mounting the component. A full mount test requires jest-expo to be added — tracked here for the integration step.
+
+**Checkins loaded per-day in calendar screen:** `getByDate` is called for migraine days + last 7 days of the month. There is no `getByMonth` equivalent for checkins in `@/features/checkins/repo`. Integration step may want to add `getByMonth(yearMonth)` to the checkins repo to avoid N+1 queries. Calendar currently loads ~7–30 queries per month refresh — acceptable for v1 offline-first, but flagged.
+
+**Weather graceful degradation:** `DayDetailScreen` renders a no-op `WeatherPlaceholder` component when weather feature is not yet merged. Wire up to `@/features/weather/hooks → useWeatherForDate(date)` at integration step.
+
+**`pointerEvents: 'none'` on during-tint overlay:** RN 0.81 supports `pointerEvents` as a style prop directly (not as a View prop). Used as style property per modern RN API.
+
+**Route paths used:** `/log/retro?date=YYYY-MM-DD` and `/log/retro?id={migraineId}` for day-detail navigation per G7/G8. Log-retro agent handles these params.
 
 ### log-active
-*(log-active appends here)*
+**Note for log-active (preset by integrator):** Weather agent exports `captureWeatherNow()` as a plain async function AND a `captureNow` callback returned from `useCurrentWeather()`. The standalone `captureWeatherNow()` does NOT auto-invalidate the TanStack Query cache (it can't call `useQueryClient()` outside a hook). Use `useCurrentWeather().captureNow` for automatic cache invalidation, or invalidate manually with `queryClient.invalidateQueries({ queryKey: ['weather', 'current'] })` after calling the bare function.
 
 ### log-retro
 *(log-retro appends here)*
