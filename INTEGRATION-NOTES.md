@@ -170,7 +170,20 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 *(companion appends here)*
 
 ### onboarding
-*(onboarding appends here)*
+
+**Time picker: no new dependency.** Spec says "use a simple inline picker or RN `<DateTimePicker>` — if you must add a dep, use `@react-native-community/datetimepicker`." The inline picker using two `Stepper` components (hour 0–23, minute 0–59 in steps of 5) is sufficient and avoids the dep. No `@react-native-community/datetimepicker` installed.
+
+**Button accessibilityLabel:** `Button` from `@/components/ui/Button` uses `label` as its internal `accessibilityLabel` (see Pressable in Button.tsx). Do not pass `accessibilityLabel` as a separate prop — it's not in `ButtonProps` and will cause a TS error.
+
+**Notifications screen primary CTA:** The `onboardingCopy.notifications.primary` string is `'Yes, remind me'`, not `'Yes, remind me at 9:00'` as spec §0.3 prose suggests. The copy module is the source of truth per spec §6. The time is shown inline via the picker instead.
+
+**Settings key-value writes:** `writeSetting(key, value)` in `src/features/onboarding/repo.ts` handles all five settings keys. Uses Drizzle `insert().onConflictDoUpdate()` on `settings.key` primary key.
+
+**MiniCalendarPreview:** `src/features/onboarding/components/MiniCalendarPreview.tsx`. Pure presentational, takes `palette: PaletteTokens`. 4×7 grid, 3 highlighted cells at fixed positions (row 0 col 2 = severe, row 1 col 5 = moderate, row 3 col 1 = mild). Hidden from accessibility tree (decorative).
+
+**Expo Go caption (G11):** Shows `"Reminders show as in-app banners in Expo Go."` as a `Text` element below the time picker when `isExpoGo()` returns true. Does not block the permission flow.
+
+**vitest config:** Added `vitest.config.ts` (node env, `@/` alias) and `test`/`test:watch` scripts to `package.json`. 105 tests pass. Tests cover: verbatim copy strings for all 5 screens, palette count/names (spec G1), all 15 palette tokens for all 4 palettes, `formatHHMM` edge cases, `writeSetting` mock integration, `MiniCalendarPreview` severity colours per palette, and full flow settings contract.
 
 ## Cross-feature interface contracts (what each agent exports for others)
 
