@@ -160,7 +160,44 @@ Used by log-end (`app/log/end.tsx`) per spec §5.1.
 **Note for log-active (preset by integrator):** Weather agent exports `captureWeatherNow()` as a plain async function AND a `captureNow` callback returned from `useCurrentWeather()`. The standalone `captureWeatherNow()` does NOT auto-invalidate the TanStack Query cache (it can't call `useQueryClient()` outside a hook). Use `useCurrentWeather().captureNow` for automatic cache invalidation, or invalidate manually with `queryClient.invalidateQueries({ queryKey: ['weather', 'current'] })` after calling the bare function.
 
 ### log-retro
-*(log-retro appends here)*
+
+**Files created:**
+- `app/log/retro.tsx` — replaces placeholder; full retrospective logging screen
+- `src/features/log-retro/logic.ts` — pure logic (no RN imports): `RetroFormState`, `QueuedDose`, `makeInitialState`, `hasChanged`, `toDate`, `toISODate`, `formatHHMM`, `normaliseFoodTagName`, `toggleInList`
+- `src/features/log-retro/logic.test.ts` — 30 unit tests covering all pure logic; runs in Node (no RN)
+- `src/features/log-retro/hooks.ts` — TanStack Query hooks: food tags fallback, sorted helpers, meds list, migraine-by-id, checkin-for-date, save (insert + update)
+- `src/features/log-retro/components/TimeSection.tsx` — start/end date+time steppers + "still going" toggle
+- `src/features/log-retro/components/SeveritySection.tsx` — severity slider + aura-only toggle + symptom chips
+- `src/features/log-retro/components/FoodWaterSection.tsx` — read-only checkin display OR inline food/water entry
+- `src/features/log-retro/components/MedsSection.tsx` — med picker sheet + queued dose list
+- `src/features/log-retro/components/HelpersSection.tsx` — helper chips (frequency-sorted)
+
+**`@/features/checkins/foodTags` not yet exported by checkin agent:** Fell back to direct Drizzle queries against `food_tags` table in `useFoodTagsFallback()` / `useUpsertFoodTagFallback()`. Both normalise food tag names (lowercase + trim) per spec. Integration step: once checkin agent's `@/features/checkins/foodTags` is merged, swap `useFoodTagsFallback` / `useUpsertFoodTagFallback` calls in `hooks.ts` for `useFoodTags` / `useUpsertFoodTag` from that module.
+
+**Queued doses pattern:** `QueuedDose` (defined in `logic.ts`) has no `migraineEventId` — it is added at flush time. `useSaveRetro` calls `migraineRepo.insertCompleted` first, gets the id from `result.value.id`, then calls `medsRepo.recordDose` for each queued dose with `migraineEventId` set to the new id. Edit mode: additional doses queued during editing are also flushed after `update` returns.
+
+**Edit mode (G7):** `?id=<migraineId>` param → `useMigraineById` loads the row → `formFromMigraineRow` maps it to `RetroFormState` → save calls `migraineRepo.update`. Save button label becomes "Update".
+
+**Prefill date (G8):** `?date=YYYY-MM-DD` param → passed to `makeInitialState(prefillDate)` → start date stepper pre-populated.
+
+**Aura-only (G4):** Toggle sets `auraOnly = true` on the form; save maps that to `peakSeverity = 0`. Slider remains visible on aura-only — severity value is ignored.
+
+**Food + water section (resolved decision #1 — before meds):** When a check-in exists for the start date, shown read-only with a link to `/checkin/<date>`. When absent, inline mini-form appears (water Stepper + food chip picker + "+ Add" flow). On save in insert mode, if `inlineCheckinDate` is set and `waterCups > 0 || foodTagIds.length > 0`, `checkinsRepo.upsert` writes a `daily_checkins` row.
+
+**Helper sort (G3):** `useSortedHelpers` calls `sortHelpersByUserFrequency(allMigraines ?? [])`, then maps tags to labels via `HELPER_TAGS_DEFAULT_ORDER`. Tie-break handled inside the helper function.
+
+**Discard confirmation:** `hasChanged(form, initialForm)` in `handleCancel`. If true, opens a Sheet with "Discard" (danger) and "Keep editing" (secondary). If false, `router.back()` immediately.
+
+**`isSaving` is local `useState`:** `useSaveRetro.save()` is synchronous. The flag flips true/false synchronously around the try/finally — it will never be `true` when the next render fires. If Supabase sync is added later, convert `save` to async.
+
+**Slider colours note:** The Slider primitive uses CSS var strings for tint colours per foundation. If slider thumb colours are wrong on device, use `usePalette().accentPrimary` per foundation's INTEGRATION-NOTES note.
+
+**Test count:** 30 unit tests in `src/features/log-retro/logic.test.ts`. Covers all `hasChanged` field paths (13 cases), queued-dose flush contract, `toDate`, `toISODate`, `formatHHMM`, `normaliseFoodTagName`, `toggleInList`.
+
+**Checks passed:**
+- `pnpm typecheck` — 0 errors
+- `pnpm lint` — 0 warnings, 0 errors
+- `pnpm test` — 224 tests pass (194 existing + 30 new)
 
 ### checkin
 *(checkin appends here)*
