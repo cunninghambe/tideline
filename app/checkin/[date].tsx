@@ -83,7 +83,7 @@ export default function CheckinScreen() {
   const { date } = useLocalSearchParams<{ date: string }>();
   const { data: existing, isLoading } = useCheckinForDate(date ?? '');
   const upsertCheckin = useUpsertCheckin(date ?? '');
-  const cycleEnabled = useSetting('cycle.tracking_enabled', 'false') === 'true';
+  const cycleEnabled = useSetting('cycle.tracking_enabled', 'true') === 'true';
 
   const [initialized, setInitialized] = useState(false);
   const [sleepHours, setSleepHours] = useState(7);

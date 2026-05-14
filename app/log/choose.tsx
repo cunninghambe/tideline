@@ -12,7 +12,7 @@ export default function LogChooseScreen() {
   return (
     <ScrollView
       className="flex-1 bg-bg"
-      contentContainerClassName="flex-grow items-center justify-center px-6 py-12"
+      contentContainerClassName="items-center px-6 pt-16 pb-12"
     >
       <View className="w-full max-w-sm gap-6">
         <View accessibilityRole="header">

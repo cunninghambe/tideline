@@ -47,7 +47,7 @@ export default function DeleteScreen() {
         <View className="flex-row items-start gap-2">
           <Text className="text-accent-primary">✓</Text>
           <Text className="text-text-primary text-sm flex-1">
-            Local data on this phone — deleted
+            Local data on this phone — will be deleted
           </Text>
         </View>
         {FEATURE_FLAGS.cloudSync && (
@@ -55,13 +55,13 @@ export default function DeleteScreen() {
             <View className="flex-row items-start gap-2">
               <Text className="text-accent-primary">✓</Text>
               <Text className="text-text-primary text-sm flex-1">
-                Your cloud backup — deleted
+                Your cloud backup — will be deleted
               </Text>
             </View>
             <View className="flex-row items-start gap-2">
               <Text className="text-accent-primary">✓</Text>
               <Text className="text-text-primary text-sm flex-1">
-                Your account — deleted
+                Your account — will be deleted
               </Text>
             </View>
           </>

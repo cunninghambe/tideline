@@ -235,7 +235,7 @@ export default function CalendarScreen() {
             bottom: 0,
             zIndex: 0,
             backgroundColor: palette.duringTint,
-            opacity: 0.28,
+            opacity: 0.16,
             pointerEvents: 'none',
           }}
         />
