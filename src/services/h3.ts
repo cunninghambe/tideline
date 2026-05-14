@@ -1,3 +1,4 @@
+import './textEncodingPolyfill';
 import { latLngToCell, cellToLatLng } from 'h3-js';
 
 export const H3_RESOLUTION_LOCAL = 7; // ~5km, used for personal weather caching

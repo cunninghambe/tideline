@@ -1,10 +1,14 @@
+import '../global.css';
+
 import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 
 import { ThemeProvider } from '@/theme/provider';
+import { usePalette } from '@/theme/useTheme';
 import { useTidelineFonts } from '@/theme/fonts';
 import { runMigrations } from '@/db/client';
 import { getActive } from '@/features/migraines/repo';
@@ -53,50 +57,39 @@ export default function RootLayout() {
   return (
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
-        <GestureHandlerRootView style={{ flex: 1 }}>
-          <Stack>
-            <Stack.Screen name="index" options={{ headerShown: false }} />
-            <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-            <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
-            <Stack.Screen
-              name="day/[date]"
-              options={{ title: '', headerBackTitle: 'Calendar' }}
-            />
-            <Stack.Screen
-              name="log/choose"
-              options={{ title: 'Log a migraine', presentation: 'modal' }}
-            />
-            <Stack.Screen
-              name="log/active"
-              options={{ title: "You're having a migraine", headerShown: false }}
-            />
-            <Stack.Screen
-              name="log/retro"
-              options={{ title: 'Log a migraine', headerBackTitle: 'Back' }}
-            />
-            <Stack.Screen
-              name="log/end"
-              options={{ title: 'It ended', presentation: 'modal' }}
-            />
-            <Stack.Screen
-              name="companion"
-              options={{ title: 'Tideline is here', headerShown: false }}
-            />
-            <Stack.Screen
-              name="checkin/[date]"
-              options={{ title: 'Daily check-in' }}
-            />
-            <Stack.Screen
-              name="meds/add"
-              options={{ title: 'Add medication', presentation: 'modal' }}
-            />
-            <Stack.Screen
-              name="meds/[id]"
-              options={{ title: 'Medication', headerBackTitle: 'Meds' }}
-            />
-          </Stack>
-        </GestureHandlerRootView>
+        <SafeAreaProvider>
+          <GestureHandlerRootView style={{ flex: 1 }}>
+            <ThemedStack />
+          </GestureHandlerRootView>
+        </SafeAreaProvider>
       </ThemeProvider>
     </QueryClientProvider>
+  );
+}
+
+function ThemedStack() {
+  const palette = usePalette();
+  return (
+    <Stack
+      screenOptions={{
+        headerStyle: { backgroundColor: palette.bg },
+        headerTintColor: palette.textPrimary,
+        headerShadowVisible: false,
+        contentStyle: { backgroundColor: palette.bg },
+      }}
+    >
+      <Stack.Screen name="index" options={{ headerShown: false }} />
+      <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+      <Stack.Screen name="(onboarding)" options={{ headerShown: false }} />
+      <Stack.Screen name="day/[date]" options={{ title: '', headerBackTitle: 'Calendar' }} />
+      <Stack.Screen name="log/choose" options={{ title: 'Log a migraine', presentation: 'modal' }} />
+      <Stack.Screen name="log/active" options={{ title: "You're having a migraine", headerShown: false }} />
+      <Stack.Screen name="log/retro" options={{ title: 'Log a migraine', headerBackTitle: 'Back' }} />
+      <Stack.Screen name="log/end" options={{ title: 'It ended', presentation: 'modal' }} />
+      <Stack.Screen name="companion" options={{ title: 'Tideline is here', headerShown: false }} />
+      <Stack.Screen name="checkin/[date]" options={{ title: 'Daily check-in' }} />
+      <Stack.Screen name="meds/add" options={{ title: 'Add medication', presentation: 'modal' }} />
+      <Stack.Screen name="meds/[id]" options={{ title: 'Medication', headerBackTitle: 'Meds' }} />
+    </Stack>
   );
 }

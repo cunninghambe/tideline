@@ -7,10 +7,15 @@ import { isExpoGo } from '@/lib/runtime';
 const DAILY_CHECKIN_NOTIFICATION_ID = 'daily-checkin-reminder';
 
 function getSettingSync(key: string): string | null {
-  const row = db.select().from(settingsTable).where(eq(settingsTable.key, key)).get();
-  if (!row) return null;
-  const v = row.value;
-  return typeof v === 'string' ? v : JSON.stringify(v);
+  try {
+    const row = db.select().from(settingsTable).where(eq(settingsTable.key, key)).get();
+    if (!row) return null;
+    const v = row.value;
+    return typeof v === 'string' ? v : JSON.stringify(v);
+  } catch {
+    // settings table may not exist yet on very first launch — before migrations
+    return null;
+  }
 }
 
 function parseTime(hhmm: string): { hour: number; minute: number } {
@@ -42,10 +47,9 @@ export async function scheduleDailyCheckinReminder(): Promise<void> {
       sound: false,
     },
     trigger: {
-      type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
+      type: Notifications.SchedulableTriggerInputTypes.DAILY,
       hour,
       minute,
-      repeats: true,
     },
   });
 }

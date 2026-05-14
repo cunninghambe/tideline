@@ -1,6 +1,7 @@
 import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { usePalette } from '@/theme/useTheme';
 
 type IoniconsName = React.ComponentProps<typeof Ionicons>['name'];
@@ -12,17 +13,16 @@ function TabIcon({ name, color, size }: { name: IoniconsName; color: string; siz
 export default function TabsLayout() {
   const palette = usePalette();
   return (
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: palette.bg }}>
     <Tabs
       screenOptions={{
+        headerShown: false,
         tabBarActiveTintColor: palette.accentPrimary,
         tabBarInactiveTintColor: palette.textMuted,
         tabBarStyle: {
           backgroundColor: palette.surface,
           borderTopColor: palette.border,
         },
-        headerStyle: { backgroundColor: palette.bg },
-        headerTintColor: palette.textPrimary,
-        headerShadowVisible: false,
       }}
     >
       <Tabs.Screen
@@ -70,5 +70,6 @@ export default function TabsLayout() {
         }}
       />
     </Tabs>
+    </SafeAreaView>
   );
 }

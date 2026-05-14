@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
@@ -166,6 +167,7 @@ export default function CompanionScreen() {
   const router = useRouter();
   const palette = usePalette();
   const density = useDensity();
+  const insets = useSafeAreaInsets();
   const activeMigraineId = useActiveMigraineStore((s) => s.activeMigraineId);
 
   const [medsSheetOpen, setMedsSheetOpen] = useState(false);
@@ -182,7 +184,7 @@ export default function CompanionScreen() {
   const severity = migraine?.peakSeverity ?? 1;
 
   return (
-    <View style={{ flex: 1, backgroundColor: palette.bg }}>
+    <View style={{ flex: 1, paddingTop: insets.top, backgroundColor: palette.bg }}>
       {/* Companion mode is the dimmest surface — heavy during-tint per design */}
       <View
         pointerEvents="none"
@@ -201,7 +203,7 @@ export default function CompanionScreen() {
         style={{ flex: 1 }}
         contentContainerStyle={{
           paddingHorizontal: density.headerPad * 1.4,
-          paddingTop: density.headerPad * 2.5,
+          paddingTop: density.headerPad * 1.5,
           paddingBottom: density.headerPad * 1.4,
         }}
         showsVerticalScrollIndicator={false}
