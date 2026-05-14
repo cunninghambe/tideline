@@ -2,12 +2,16 @@ import React, { useEffect } from 'react';
 import { Stack } from 'expo-router';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { GestureHandlerRootView } from 'react-native-gesture-handler';
+import * as SplashScreen from 'expo-splash-screen';
 
 import { ThemeProvider } from '@/theme/provider';
+import { useTidelineFonts } from '@/theme/fonts';
 import { runMigrations } from '@/db/client';
 import { getActive } from '@/features/migraines/repo';
 import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
 import { scheduleDailyCheckinReminder } from '@/features/checkins/notifications';
+
+void SplashScreen.preventAutoHideAsync().catch(() => {});
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -20,6 +24,7 @@ const queryClient = new QueryClient({
 
 export default function RootLayout() {
   const setActiveMigraineId = useActiveMigraineStore((s) => s.setActiveMigraineId);
+  const fontsLoaded = useTidelineFonts();
 
   useEffect(() => {
     runMigrations().catch((e: unknown) => {
@@ -36,6 +41,14 @@ export default function RootLayout() {
       console.error('[tideline] Failed to schedule daily check-in reminder:', e);
     });
   }, [setActiveMigraineId]);
+
+  useEffect(() => {
+    if (fontsLoaded) {
+      void SplashScreen.hideAsync().catch(() => {});
+    }
+  }, [fontsLoaded]);
+
+  if (!fontsLoaded) return null;
 
   return (
     <QueryClientProvider client={queryClient}>

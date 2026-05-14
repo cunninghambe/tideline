@@ -7,10 +7,13 @@ import { Sheet } from '@/components/ui/Sheet';
 import { Slider } from '@/components/ui/Slider';
 import { companionCopy } from '@/copy';
 import { usePalette } from '@/theme/useTheme';
+import { useDensity } from '@/theme/calendarTokenHooks';
+import { FONT_FAMILY } from '@/theme/fonts';
 import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
 import { DuringSection } from '@/features/companion/components/DuringSection';
 import { TipBlock } from '@/features/companion/components/TipBlock';
 import { EmergencyBlock } from '@/features/companion/components/EmergencyBlock';
+import { CompanionDivider } from '@/features/companion/components/CompanionBlock';
 import {
   useActiveMigraine,
   useMinutesSince,
@@ -43,7 +46,7 @@ function MedsSheet({ open, onClose, migraineId }: MedsSheetProps) {
 
   return (
     <Sheet open={open} onClose={onClose} title="What did you take?">
-      <View className="px-6 pb-8 gap-3">
+      <View style={{ paddingHorizontal: 24, paddingBottom: 32, gap: 12 }}>
         {!meds || meds.length === 0 ? (
           <Text className="text-text-secondary text-base">
             No medications in your list yet. Add some in the Meds tab.
@@ -54,7 +57,7 @@ function MedsSheet({ open, onClose, migraineId }: MedsSheetProps) {
               key={med.id}
               label={`${med.brandName} ${med.defaultDose}`}
               onPress={() => handleTakeMed(med.id, med.defaultDose)}
-              variant="secondary"
+              variant="duringPrimary"
               size="xl"
               fullWidth
               loading={recordDose.isPending}
@@ -96,7 +99,7 @@ function WorseSeveritySheet({
 
   return (
     <Sheet open={open} onClose={onClose} title="Update peak severity">
-      <View className="px-6 pb-8 gap-6">
+      <View style={{ paddingHorizontal: 24, paddingBottom: 32, gap: 24 }}>
         <Slider
           value={draft}
           onValueChange={setDraft}
@@ -123,9 +126,26 @@ function WorseSeveritySheet({
 
 function NoActiveMigraineScreen() {
   const router = useRouter();
+  const palette = usePalette();
   return (
-    <View className="flex-1 bg-bg items-center justify-center px-8 gap-6">
-      <Text className="text-text-primary text-xl text-center">
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: palette.bg,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingHorizontal: 32,
+        gap: 24,
+      }}
+    >
+      <Text
+        style={{
+          color: palette.textPrimary,
+          fontFamily: FONT_FAMILY.serif,
+          fontSize: 22,
+          textAlign: 'center',
+        }}
+      >
         No migraine active right now.
       </Text>
       <Button
@@ -145,6 +165,7 @@ function NoActiveMigraineScreen() {
 export default function CompanionScreen() {
   const router = useRouter();
   const palette = usePalette();
+  const density = useDensity();
   const activeMigraineId = useActiveMigraineStore((s) => s.activeMigraineId);
 
   const [medsSheetOpen, setMedsSheetOpen] = useState(false);
@@ -161,32 +182,47 @@ export default function CompanionScreen() {
   const severity = migraine?.peakSeverity ?? 1;
 
   return (
-    // Companion mode is always dim per spec §6.1 "Maximum darkness."
-    // A higher-opacity duringTint overlay knocks light palettes much darker
-    // while keeping the palette's character. Text contrast remains acceptable
-    // because text is rendered above the overlay.
-    <View className="flex-1" style={{ backgroundColor: palette.bg }}>
+    <View style={{ flex: 1, backgroundColor: palette.bg }}>
+      {/* Companion mode is the dimmest surface — heavy during-tint per design */}
       <View
-        className="absolute inset-0"
-        style={{ backgroundColor: palette.duringTint, opacity: 0.45 }}
         pointerEvents="none"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          right: 0,
+          bottom: 0,
+          backgroundColor: palette.duringTint,
+          opacity: 0.5,
+        }}
       />
 
       <ScrollView
-        className="flex-1"
-        contentContainerClassName="px-6 pt-12 pb-8 gap-8"
+        style={{ flex: 1 }}
+        contentContainerStyle={{
+          paddingHorizontal: density.headerPad * 1.4,
+          paddingTop: density.headerPad * 2.5,
+          paddingBottom: density.headerPad * 1.4,
+        }}
         showsVerticalScrollIndicator={false}
       >
-        {/* Title — softly faded */}
-        <Text
-          className="text-text-primary text-4xl font-medium"
-          style={{ opacity: 0.7 }}
-          accessibilityRole="header"
-        >
-          {companionCopy.title}
-        </Text>
+        {/* Centred fading Newsreader title */}
+        <View style={{ alignItems: 'center', opacity: 0.78, marginBottom: 28 }}>
+          <Text
+            accessibilityRole="header"
+            style={{
+              fontFamily: FONT_FAMILY.serif,
+              fontSize: 26 * density.typeScale,
+              lineHeight: 29 * density.typeScale,
+              letterSpacing: -0.26,
+              color: palette.textPrimary,
+              textAlign: 'center',
+            }}
+          >
+            Tideline{'\n'}is here.
+          </Text>
+        </View>
 
-        {/* Right now */}
         {migraine ? (
           <DuringSection
             migraineId={migraine.id}
@@ -195,42 +231,49 @@ export default function CompanionScreen() {
           />
         ) : null}
 
-        {/* Personalized helpers + general tips */}
+        <CompanionDivider />
+
         <TipBlock helpers={helpers} completedCount={completedCount} />
 
-        {/* Emergency guidance */}
+        <CompanionDivider />
+
         <EmergencyBlock />
 
-        {/* Three big CTAs */}
-        <View className="gap-4 pt-4">
+        {/* Bottom CTAs — duringPrimary muted */}
+        <View style={{ marginTop: 24, gap: 8 }}>
           <Button
             label={companionCopy.ctas.tookSomething}
             onPress={() => setMedsSheetOpen(true)}
-            variant="secondary"
+            variant="duringPrimary"
             size="xl"
             fullWidth
             testID="cta-took-something"
           />
-          <Button
-            label={companionCopy.ctas.gettingWorse}
-            onPress={() => setWorseSheetOpen(true)}
-            variant="secondary"
-            size="xl"
-            fullWidth
-            testID="cta-getting-worse"
-          />
-          <Button
-            label={companionCopy.ctas.ended}
-            onPress={() => router.push('/log/end')}
-            variant="primary"
-            size="xl"
-            fullWidth
-            testID="cta-ended"
-          />
+          <View style={{ flexDirection: 'row', gap: 8 }}>
+            <View style={{ flex: 1 }}>
+              <Button
+                label={companionCopy.ctas.gettingWorse}
+                onPress={() => setWorseSheetOpen(true)}
+                variant="duringPrimary"
+                size="lg"
+                fullWidth
+                testID="cta-getting-worse"
+              />
+            </View>
+            <View style={{ flex: 1 }}>
+              <Button
+                label={companionCopy.ctas.ended}
+                onPress={() => router.push('/log/end')}
+                variant="duringPrimary"
+                size="lg"
+                fullWidth
+                testID="cta-ended"
+              />
+            </View>
+          </View>
         </View>
       </ScrollView>
 
-      {/* Sheets */}
       <MedsSheet
         open={medsSheetOpen}
         onClose={() => setMedsSheetOpen(false)}

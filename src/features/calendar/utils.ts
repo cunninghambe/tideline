@@ -29,11 +29,25 @@ export function dayCellColor(day: DayState, palette: PaletteTokens): string {
     if (sev >= 1) return palette.severityMild;
     // sev === 0: aura-only check (G4)
     if (sev === 0 && day.migraine?.symptomTags.includes('aura')) {
-      return palette.accentSecondary;
+      return palette.auraOnly;
     }
   }
   if (day.triggerLikely) return 'transparent';
   return palette.bg;
+}
+
+/**
+ * Returns the severity colour for a raw 0..10 level, independent of any
+ * day state. Used by the severity slider's live fill.
+ *
+ * Returns `null` for level 0 (no migraine, no aura) so the caller can render
+ * a neutral state instead of painting a swatch.
+ */
+export function severityColorForLevel(level: number, palette: PaletteTokens): string | null {
+  if (level >= 8) return palette.severitySevere;
+  if (level >= 5) return palette.severityModerate;
+  if (level >= 1) return palette.severityMild;
+  return null;
 }
 
 /**

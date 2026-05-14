@@ -32,6 +32,7 @@ const palette: PaletteTokens = {
   severitySevere: '#8B2E1F',
   severityModerate: '#C97A4B',
   severityMild: '#E5C29F',
+  auraOnly: '#9C8B68',
   duringTint: '#1F1810',
 };
 
@@ -125,11 +126,11 @@ describe('CalendarMonthGrid — cell colour logic', () => {
     expect(dayCellColor(state, palette)).toBe(palette.severityMild);
   });
 
-  it('aura-only migraine (severity 0 + aura tag) gets accentSecondary colour', () => {
+  it('aura-only migraine (severity 0 + aura tag) gets auraOnly colour', () => {
     const state: DayState = {
       migraine: { peakSeverity: auraOnlyMigraine.peakSeverity, symptomTags: auraOnlyMigraine.symptomTags },
     };
-    expect(dayCellColor(state, palette)).toBe(palette.accentSecondary);
+    expect(dayCellColor(state, palette)).toBe(palette.auraOnly);
   });
 
   it('day with no migraine gets bg colour', () => {

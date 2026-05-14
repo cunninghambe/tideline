@@ -8,6 +8,8 @@ import { Slider } from '@/components/ui/Slider';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { TextField } from '@/components/ui/TextField';
 import { Button } from '@/components/ui/Button';
+import { SectionLabel } from '@/components/ui/SectionLabel';
+import { FONT_FAMILY } from '@/theme/fonts';
 import { checkinCopy } from '@/copy';
 import { useSetting } from '@/features/settings/store';
 import { useCheckinForDate, useUpsertCheckin } from '@/features/checkins/hooks';
@@ -24,10 +26,15 @@ const QUALITY_OPTIONS = checkinCopy.sleep.qualityOptions.map((o) => ({
   label: o.label,
 }));
 
-function SectionLabel({ text }: { text: string }) {
+function SectionHeading({ text }: { text: string }) {
   return (
     <View accessibilityRole="header">
-      <Text className="text-text-primary text-xl font-semibold">{text}</Text>
+      <Text
+        style={{ fontFamily: FONT_FAMILY.serifMedium, letterSpacing: -0.2 }}
+        className="text-text-primary text-xl"
+      >
+        {text}
+      </Text>
     </View>
   );
 }
@@ -45,11 +52,9 @@ function SleepSection({
 }) {
   return (
     <View className="gap-4">
-      <SectionLabel text={checkinCopy.sleep.label} />
+      <SectionHeading text={checkinCopy.sleep.label} />
       <View className="gap-3">
-        <Text className="text-text-secondary text-sm font-medium">
-          {checkinCopy.sleep.hoursLabel}
-        </Text>
+        <SectionLabel>{checkinCopy.sleep.hoursLabel}</SectionLabel>
         <Stepper
           value={hours}
           onValueChange={onHoursChange}
@@ -61,9 +66,7 @@ function SleepSection({
         />
       </View>
       <View className="gap-3">
-        <Text className="text-text-secondary text-sm font-medium">
-          {checkinCopy.sleep.qualityLabel}
-        </Text>
+        <SectionLabel>{checkinCopy.sleep.qualityLabel}</SectionLabel>
         <SegmentedControl
           options={QUALITY_OPTIONS}
           value={quality}
@@ -155,10 +158,13 @@ export default function CheckinScreen() {
       >
         {/* Title */}
         <View style={{ gap: 4 }}>
-          <Text className="text-text-primary text-2xl font-semibold">
+          <Text
+            style={{ fontFamily: FONT_FAMILY.serifMedium, letterSpacing: -0.4 }}
+            className="text-text-primary text-3xl"
+          >
             {checkinCopy.title}
           </Text>
-          <Text className="text-text-secondary text-base">{formattedDate}</Text>
+          <Text className="text-text-secondary text-base italic">{formattedDate}</Text>
         </View>
 
         {/* Sleep */}
@@ -171,7 +177,7 @@ export default function CheckinScreen() {
 
         {/* Stress */}
         <View style={{ gap: 12 }}>
-          <SectionLabel text={checkinCopy.stress.label} />
+          <SectionHeading text={checkinCopy.stress.label} />
           <Text className="text-text-secondary text-sm">{checkinCopy.stress.helper}</Text>
           <Slider
             value={stressLevel}
@@ -185,7 +191,7 @@ export default function CheckinScreen() {
 
         {/* Water */}
         <View style={{ gap: 12 }}>
-          <SectionLabel text={checkinCopy.water.label} />
+          <SectionHeading text={checkinCopy.water.label} />
           <Stepper
             value={waterCups}
             onValueChange={setWaterCups}
@@ -198,7 +204,7 @@ export default function CheckinScreen() {
 
         {/* Food */}
         <View style={{ gap: 12 }}>
-          <SectionLabel text={checkinCopy.food.label} />
+          <SectionHeading text={checkinCopy.food.label} />
           <FoodTagPicker
             selectedIds={foodTagIds}
             onChange={setFoodTagIds}
@@ -208,7 +214,7 @@ export default function CheckinScreen() {
 
         {/* Caffeine */}
         <View style={{ gap: 12 }}>
-          <SectionLabel text={checkinCopy.caffeine.label} />
+          <SectionHeading text={checkinCopy.caffeine.label} />
           <Stepper
             value={caffeineCups}
             onValueChange={setCaffeineCups}
@@ -222,7 +228,7 @@ export default function CheckinScreen() {
         {/* Cycle — only when tracking enabled */}
         {cycleEnabled && (
           <View style={{ gap: 12 }}>
-            <SectionLabel text={checkinCopy.cycle.label} />
+            <SectionHeading text={checkinCopy.cycle.label} />
             <SegmentedControl
               options={CYCLE_OPTIONS}
               value={cycleOption}
@@ -235,7 +241,7 @@ export default function CheckinScreen() {
 
         {/* Notes */}
         <View style={{ gap: 12 }}>
-          <SectionLabel text={checkinCopy.notes.label} />
+          <SectionHeading text={checkinCopy.notes.label} />
           <TextField
             value={notes}
             onChangeText={setNotes}

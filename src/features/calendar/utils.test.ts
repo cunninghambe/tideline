@@ -22,6 +22,7 @@ const palette: PaletteTokens = {
   severitySevere: '#8B2E1F',
   severityModerate: '#C97A4B',
   severityMild: '#E5C29F',
+  auraOnly: '#9C8B68',
   duringTint: '#1F1810',
 };
 
@@ -52,9 +53,9 @@ describe('dayCellColor', () => {
     }
   });
 
-  it('returns accentSecondary for aura-only (severity 0 + aura tag)', () => {
+  it('returns auraOnly for aura-only (severity 0 + aura tag)', () => {
     const day: DayState = { migraine: { peakSeverity: 0, symptomTags: ['aura'] } };
-    expect(dayCellColor(day, palette)).toBe(palette.accentSecondary);
+    expect(dayCellColor(day, palette)).toBe(palette.auraOnly);
   });
 
   it('returns bg for severity 0 without aura tag (edge case)', () => {

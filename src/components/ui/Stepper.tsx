@@ -1,7 +1,10 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+
 import { usePalette } from '@/theme/useTheme';
+import { useDensity } from '@/theme/calendarTokenHooks';
+import { FONT_FAMILY } from '@/theme/fonts';
 
 type StepperProps = {
   value: number;
@@ -23,6 +26,7 @@ export function Stepper({
   testID,
 }: StepperProps) {
   const palette = usePalette();
+  const density = useDensity();
   const decrement = () => onValueChange(Math.max(min, value - step));
   const increment = () => onValueChange(Math.min(max, value + step));
   const canDecrement = value > min;
@@ -30,14 +34,25 @@ export function Stepper({
 
   const displayValue = Number.isInteger(value) ? String(value) : value.toFixed(1);
 
+  const buttonStyle = {
+    width: 44,
+    height: 44,
+    borderRadius: density.cellRadius,
+    backgroundColor: palette.surface,
+    borderWidth: 1,
+    borderColor: palette.border,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+  };
+
   return (
     <View
-      className="flex-row items-center gap-4"
       testID={testID}
       accessibilityRole="adjustable"
       accessibilityLabel={unit ? `${displayValue} ${unit}` : displayValue}
       accessibilityValue={{ min, max, now: value }}
       accessibilityHint="Double tap and swipe to adjust"
+      style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}
     >
       <Pressable
         onPress={decrement}
@@ -45,16 +60,34 @@ export function Stepper({
         accessibilityRole="button"
         accessibilityLabel="Decrease"
         accessibilityState={{ disabled: !canDecrement }}
-        style={{ minHeight: 44, minWidth: 44, opacity: canDecrement ? 1 : 0.3 }}
-        className="items-center justify-center rounded-full bg-surface border border-border"
+        style={{ ...buttonStyle, opacity: canDecrement ? 1 : 0.3 }}
       >
         <Ionicons name="remove" size={20} color={palette.textPrimary} />
       </Pressable>
 
-      <Text className="text-text-primary font-semibold text-xl min-w-[40px] text-center">
-        {displayValue}
-        {unit ? <Text className="text-text-secondary text-base"> {unit}</Text> : null}
-      </Text>
+      <View style={{ minWidth: 56, alignItems: 'center' }}>
+        <Text
+          style={{
+            fontFamily: FONT_FAMILY.monoMedium,
+            fontSize: 17 * density.typeScale,
+            color: palette.textPrimary,
+          }}
+        >
+          {displayValue}
+          {unit ? (
+            <Text
+              style={{
+                fontFamily: FONT_FAMILY.mono,
+                fontSize: 12 * density.typeScale,
+                color: palette.textMuted,
+              }}
+            >
+              {' '}
+              {unit}
+            </Text>
+          ) : null}
+        </Text>
+      </View>
 
       <Pressable
         onPress={increment}
@@ -62,8 +95,7 @@ export function Stepper({
         accessibilityRole="button"
         accessibilityLabel="Increase"
         accessibilityState={{ disabled: !canIncrement }}
-        style={{ minHeight: 44, minWidth: 44, opacity: canIncrement ? 1 : 0.3 }}
-        className="items-center justify-center rounded-full bg-surface border border-border"
+        style={{ ...buttonStyle, opacity: canIncrement ? 1 : 0.3 }}
       >
         <Ionicons name="add" size={20} color={palette.textPrimary} />
       </Pressable>

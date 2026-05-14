@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text } from 'react-native';
 
 import { Chip } from '@/components/ui/Chip';
+import { FONT_FAMILY } from '@/theme/fonts';
 import type { HelperTag } from '@/db/schema/migraines';
 import { toggleInList } from '../logic';
 
@@ -18,7 +19,12 @@ export function HelpersSection({
 }: HelpersSectionProps) {
   return (
     <View className="gap-3">
-      <Text className="text-text-primary text-xl font-semibold">What helped?</Text>
+      <Text
+        style={{ fontFamily: FONT_FAMILY.serifMedium }}
+        className="text-text-primary text-xl"
+      >
+        What helped?
+      </Text>
       <View className="flex-row flex-wrap gap-2">
         {sortedHelpers.map((helper) => (
           <Chip

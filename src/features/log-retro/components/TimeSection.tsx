@@ -4,7 +4,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { format, parseISO, addDays, subDays } from 'date-fns';
 
 import { Stepper } from '@/components/ui/Stepper';
+import { SectionLabel } from '@/components/ui/SectionLabel';
 import { usePalette } from '@/theme/useTheme';
+import { FONT_FAMILY } from '@/theme/fonts';
 import { formatHHMM } from '../logic';
 
 type TimeSectionProps = {
@@ -105,11 +107,16 @@ export function TimeSection({
 }: TimeSectionProps) {
   return (
     <View className="gap-4">
-      <Text className="text-text-primary text-xl font-semibold">When</Text>
+      <Text
+        style={{ fontFamily: FONT_FAMILY.serifMedium }}
+        className="text-text-primary text-xl"
+      >
+        When
+      </Text>
 
       {/* Start time */}
       <View className="gap-2">
-        <Text className="text-text-secondary text-sm font-medium">Started</Text>
+        <SectionLabel>Started</SectionLabel>
         <DateChooser date={startDate} onChange={onStartDate} testIDPrefix="start-date" />
         <View className="flex-row items-center gap-4">
           <View className="flex-1">
@@ -141,7 +148,7 @@ export function TimeSection({
 
       {/* End time */}
       <View className="gap-2">
-        <Text className="text-text-secondary text-sm font-medium">Ended</Text>
+        <SectionLabel>Ended</SectionLabel>
         <View className="flex-row items-center justify-between">
           <Text className="text-text-primary text-base">Still going</Text>
           <Switch

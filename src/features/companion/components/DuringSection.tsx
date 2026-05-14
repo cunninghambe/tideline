@@ -4,8 +4,11 @@ import { View, Text, Pressable } from 'react-native';
 import { Sheet } from '@/components/ui/Sheet';
 import { Slider } from '@/components/ui/Slider';
 import { Button } from '@/components/ui/Button';
-import { companionCopy } from '@/copy';
+import { usePalette } from '@/theme/useTheme';
+import { useDensity } from '@/theme/calendarTokenHooks';
+import { FONT_FAMILY } from '@/theme/fonts';
 import { useUpdateSeverity } from '../hooks';
+import { CompanionBlock } from './CompanionBlock';
 
 type Props = {
   migraineId: string;
@@ -14,6 +17,8 @@ type Props = {
 };
 
 export function DuringSection({ migraineId, loggedAgoText, severity }: Props) {
+  const palette = usePalette();
+  const density = useDensity();
   const [sheetOpen, setSheetOpen] = useState(false);
   const [draftSeverity, setDraftSeverity] = useState(severity);
   const updateSeverity = useUpdateSeverity(migraineId);
@@ -27,27 +32,60 @@ export function DuringSection({ migraineId, loggedAgoText, severity }: Props) {
     updateSeverity.mutate(draftSeverity, { onSuccess: () => setSheetOpen(false) });
   }
 
-  return (
-    <View className="gap-3">
-      <Text className="text-text-primary text-2xl font-semibold">
-        {companionCopy.rightNowHeading}
-      </Text>
+  // loggedAgoText looks like "You logged this migraine 2h 14m ago." — pull
+  // out the duration token so we can mono-style it.
+  const match = /^(.*?)(\d+[hm].*?ago\.?)(.*)$/i.exec(loggedAgoText);
+  const beforeDuration = match?.[1] ?? loggedAgoText;
+  const duration = match?.[2] ?? '';
 
-      <Text className="text-text-primary text-xl">{loggedAgoText}</Text>
+  return (
+    <CompanionBlock label="Right now">
+      <Text
+        style={{
+          color: palette.textPrimary,
+          fontFamily: FONT_FAMILY.sans,
+          fontSize: 15 * density.typeScale,
+          lineHeight: 24 * density.typeScale,
+          marginBottom: 4,
+        }}
+      >
+        {beforeDuration}
+        {duration && (
+          <Text
+            style={{
+              fontFamily: FONT_FAMILY.monoMedium,
+              color: palette.textPrimary,
+            }}
+          >
+            {duration}
+          </Text>
+        )}
+      </Text>
 
       <Pressable
         onPress={openSheet}
         accessibilityRole="button"
-        accessibilityLabel={companionCopy.severityLine(severity)}
+        accessibilityLabel={`Severity ${severity}`}
         accessibilityHint="Tap to update"
       >
-        <Text className="text-text-secondary text-xl underline">
-          {companionCopy.severityLine(severity)}
+        <Text
+          style={{
+            color: palette.textPrimary,
+            fontFamily: FONT_FAMILY.sans,
+            fontSize: 15 * density.typeScale,
+            lineHeight: 24 * density.typeScale,
+          }}
+        >
+          {'Severity: '}
+          <Text style={{ fontFamily: FONT_FAMILY.monoMedium }}>{severity}</Text>
+          <Text style={{ color: palette.textMuted, fontStyle: 'italic' }}>
+            {'  tap to update'}
+          </Text>
         </Text>
       </Pressable>
 
       <Sheet open={sheetOpen} onClose={() => setSheetOpen(false)} title="Update severity">
-        <View className="px-6 pb-8 gap-6">
+        <View style={{ paddingHorizontal: 24, paddingBottom: 32, gap: 24 }}>
           <Slider
             value={draftSeverity}
             onValueChange={setDraftSeverity}
@@ -65,6 +103,6 @@ export function DuringSection({ migraineId, loggedAgoText, severity }: Props) {
           />
         </View>
       </Sheet>
-    </View>
+    </CompanionBlock>
   );
 }

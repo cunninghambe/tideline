@@ -3,6 +3,8 @@ import { View, Text, Switch } from 'react-native';
 
 import { Slider } from '@/components/ui/Slider';
 import { Chip } from '@/components/ui/Chip';
+import { SectionLabel } from '@/components/ui/SectionLabel';
+import { FONT_FAMILY } from '@/theme/fonts';
 import { SYMPTOM_CHIPS_UI } from '@/copy';
 import type { SymptomTag } from '@/db/schema/migraines';
 import { toggleInList } from '../logic';
@@ -26,12 +28,15 @@ export function SeveritySection({
 }: SeveritySectionProps) {
   return (
     <View className="gap-4">
-      <Text className="text-text-primary text-xl font-semibold">Severity + symptoms</Text>
+      <Text
+        style={{ fontFamily: FONT_FAMILY.serifMedium }}
+        className="text-text-primary text-xl"
+      >
+        Severity + symptoms
+      </Text>
 
       <View className="gap-3">
-        <Text className="text-text-secondary text-sm font-medium">
-          How bad was it?
-        </Text>
+        <SectionLabel>How bad was it?</SectionLabel>
         <Slider
           value={auraOnly ? 1 : peakSeverity}
           onValueChange={onSeverity}
@@ -52,9 +57,7 @@ export function SeveritySection({
       </View>
 
       <View className="gap-2">
-        <Text className="text-text-secondary text-sm font-medium">
-          Feeling? (tap any that apply)
-        </Text>
+        <SectionLabel>Feeling? (tap any that apply)</SectionLabel>
         <View className="flex-row flex-wrap gap-2">
           {SYMPTOM_CHIPS_UI.map((chip) => (
             <Chip

@@ -1,18 +1,41 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 
+import { usePalette } from '@/theme/useTheme';
+import { useDensity } from '@/theme/calendarTokenHooks';
+import { FONT_FAMILY } from '@/theme/fonts';
 import { companionCopy } from '@/copy';
+import { CompanionBlock } from './CompanionBlock';
 
-/** Subtle bordered block for the "When to seek help" section. Not alarming. */
+/** "When to seek help" — subtle accent-bordered card, never alarming. */
 export function EmergencyBlock() {
+  const palette = usePalette();
+  const density = useDensity();
+
   return (
-    <View className="border border-border rounded-xl p-4 gap-3">
-      <Text className="text-text-primary text-2xl font-semibold">
-        {companionCopy.emergencyHeading}
-      </Text>
-      <Text className="text-text-secondary text-xl">
-        {companionCopy.emergencyBody}
-      </Text>
-    </View>
+    <CompanionBlock label={companionCopy.emergencyHeading.replace(/:$/, '')}>
+      <View
+        style={{
+          padding: 14,
+          backgroundColor: palette.surface,
+          borderWidth: 1,
+          borderColor: palette.border,
+          borderLeftWidth: 2,
+          borderLeftColor: palette.accentPrimary,
+          borderRadius: 4,
+        }}
+      >
+        <Text
+          style={{
+            fontFamily: FONT_FAMILY.sans,
+            fontSize: 13 * density.typeScale,
+            lineHeight: 20 * density.typeScale,
+            color: palette.textPrimary,
+          }}
+        >
+          {companionCopy.emergencyBody}
+        </Text>
+      </View>
+    </CompanionBlock>
   );
 }

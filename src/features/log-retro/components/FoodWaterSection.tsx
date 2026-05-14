@@ -4,7 +4,9 @@ import { Link } from 'expo-router';
 
 import { Stepper } from '@/components/ui/Stepper';
 import { Chip } from '@/components/ui/Chip';
+import { SectionLabel } from '@/components/ui/SectionLabel';
 import { usePalette } from '@/theme/useTheme';
+import { FONT_FAMILY } from '@/theme/fonts';
 import type { FoodTagRow } from '@/types';
 import { normaliseFoodTagName } from '../logic';
 
@@ -66,14 +68,19 @@ export function FoodWaterSection({
 
     return (
       <View className="gap-3">
-        <Text className="text-text-primary text-xl font-semibold">Food + water</Text>
+        <Text
+          style={{ fontFamily: FONT_FAMILY.serifMedium }}
+          className="text-text-primary text-xl"
+        >
+          Food + water
+        </Text>
         <Text className="text-text-secondary text-sm">
           Pulled from this day&apos;s check-in.
         </Text>
 
         {typeof existingCheckin.waterCups === 'number' && (
           <View className="flex-row items-center gap-2">
-            <Text className="text-text-secondary text-sm font-medium w-16">Water</Text>
+            <SectionLabel style={{ marginBottom: 0, width: 56 }}>Water</SectionLabel>
             <Text className="text-text-primary text-base">
               {existingCheckin.waterCups} cups
             </Text>
@@ -82,7 +89,7 @@ export function FoodWaterSection({
 
         {checkinFoodTags.length > 0 && (
           <View className="gap-1">
-            <Text className="text-text-secondary text-sm font-medium">Food</Text>
+            <SectionLabel>Food</SectionLabel>
             <View className="flex-row flex-wrap gap-2">
               {checkinFoodTags.map((t) => (
                 <View
@@ -117,7 +124,7 @@ export function FoodWaterSection({
 
       {/* Water */}
       <View className="gap-1">
-        <Text className="text-text-secondary text-sm font-medium">Water</Text>
+        <SectionLabel>Water</SectionLabel>
         <Stepper
           value={waterCups}
           onValueChange={onWaterCups}
@@ -130,7 +137,7 @@ export function FoodWaterSection({
 
       {/* Food tags */}
       <View className="gap-2">
-        <Text className="text-text-secondary text-sm font-medium">Food</Text>
+        <SectionLabel>Food</SectionLabel>
 
         {allFoodTags.length > 0 && (
           <View className="flex-row flex-wrap gap-2">

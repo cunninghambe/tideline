@@ -8,12 +8,14 @@ import {
 } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { format, addMonths, subMonths } from 'date-fns';
+import { addMonths, subMonths } from 'date-fns';
 import { useQueryClient } from '@tanstack/react-query';
 import { Gesture, GestureDetector } from 'react-native-gesture-handler';
 import { runOnJS } from 'react-native-reanimated';
 
 import { usePalette } from '@/theme/useTheme';
+import { useDensity } from '@/theme/calendarTokenHooks';
+import { FONT_FAMILY } from '@/theme/fonts';
 import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
 import { emptyCopy } from '@/copy';
 import { Sheet } from '@/components/ui/Sheet';
@@ -25,6 +27,9 @@ import {
 import { toYearMonth, toDateString } from '@/features/calendar/utils';
 import { CalendarMonthGrid } from '@/features/calendar/components/CalendarMonthGrid';
 import { DuringTintBanner } from '@/features/calendar/components/DuringTintBanner';
+import { BrandHeader } from '@/features/calendar/components/BrandHeader';
+import { MonthNav } from '@/features/calendar/components/MonthNav';
+import { SeverityLegend } from '@/features/calendar/components/SeverityLegend';
 
 import type { DailyCheckinRow } from '@/types';
 import { getByDate } from '@/features/checkins/repo';
@@ -68,7 +73,13 @@ function MonthPicker({ open, onClose, selected, onSelect }: MonthPickerProps) {
       <View style={{ paddingHorizontal: 16, paddingBottom: 24 }}>
         {years.map((year) => (
           <View key={year}>
-            <Text style={{ color: palette.textSecondary, fontSize: 12, fontWeight: '600', paddingVertical: 8 }}>
+            <Text style={{
+              color: palette.textSecondary,
+              fontSize: 12,
+              fontFamily: FONT_FAMILY.monoMedium,
+              letterSpacing: 1.5,
+              paddingVertical: 8,
+            }}>
               {year}
             </Text>
             <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
@@ -96,6 +107,7 @@ function MonthPicker({ open, onClose, selected, onSelect }: MonthPickerProps) {
                   >
                     <Text style={{
                       color: isSelected ? palette.textInverse : palette.textPrimary,
+                      fontFamily: FONT_FAMILY.sans,
                       fontSize: 14,
                     }}>
                       {name.slice(0, 3)}
@@ -118,6 +130,7 @@ function MonthPicker({ open, onClose, selected, onSelect }: MonthPickerProps) {
 export default function CalendarScreen() {
   const router = useRouter();
   const palette = usePalette();
+  const density = useDensity();
   const queryClient = useQueryClient();
 
   const [currentMonth, setCurrentMonth] = useState(() => new Date());
@@ -161,13 +174,11 @@ export default function CalendarScreen() {
   // Load checkins for the month to display dots
   const [checkinsMap, setCheckinsMap] = useState<Record<string, DailyCheckinRow>>({});
   useEffect(() => {
-    // Load checkins for days we have data on (plus last few days)
     const dateSet = new Set<string>();
     for (const m of migraines) {
       const d = m.startedAt instanceof Date ? m.startedAt : new Date(m.startedAt);
       dateSet.add(toDateString(d));
     }
-    // Also load today and nearby days
     const today = new Date();
     for (let i = 0; i < 7; i++) {
       const d = new Date(today);
@@ -213,7 +224,7 @@ export default function CalendarScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: palette.bg }}>
-      {/* During-tint overlay */}
+      {/* During-tint overlay — warm tone, opacity 0.28 per design */}
       {activeMigraineId && (
         <View
           style={{
@@ -224,13 +235,13 @@ export default function CalendarScreen() {
             bottom: 0,
             zIndex: 0,
             backgroundColor: palette.duringTint,
-            opacity: 0.15,
+            opacity: 0.28,
             pointerEvents: 'none',
           }}
         />
       )}
 
-      {/* During-tint banner */}
+      {/* During-migraine action banner */}
       <DuringTintBanner />
 
       {/* Auto-end prompt (G6) for stale active migraines */}
@@ -256,69 +267,38 @@ export default function CalendarScreen() {
         }
         contentContainerStyle={{ paddingBottom: 100 }}
       >
-        {/* Top bar */}
-        <View
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            paddingHorizontal: 16,
-            paddingTop: 16,
-            paddingBottom: 8,
-          }}
-        >
-          <Pressable
-            onPress={goToPrevMonth}
-            accessibilityRole="button"
-            accessibilityLabel="Previous month"
-            hitSlop={12}
-            style={{ padding: 4 }}
-          >
-            <Ionicons name="chevron-back" size={22} color={palette.accentPrimary} />
-          </Pressable>
+        {/* tideline. brand + SETTINGS */}
+        <BrandHeader onSettingsPress={() => router.push('/(tabs)/settings')} />
 
-          <Pressable
-            onPress={() => setShowMonthPicker(true)}
-            accessibilityRole="button"
-            accessibilityLabel={`${format(currentMonth, 'MMMM yyyy')}, tap to change month`}
-          >
-            <Text style={{ color: palette.textPrimary, fontSize: 20, fontWeight: '600' }}>
-              {format(currentMonth, 'MMMM yyyy')}
-            </Text>
-          </Pressable>
+        {/* Month nav — centred Newsreader title, chevrons left/right */}
+        <MonthNav
+          current={currentMonth}
+          onPrev={goToPrevMonth}
+          onNext={goToNextMonth}
+          onTitlePress={() => setShowMonthPicker(true)}
+        />
 
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            {!isCurrentMonthToday && (
-              <Pressable
-                onPress={() => setCurrentMonth(new Date())}
-                accessibilityRole="button"
-                accessibilityLabel="Go to today"
-                hitSlop={12}
-                style={{ padding: 4 }}
-              >
-                <Text style={{ color: palette.accentPrimary, fontSize: 13 }}>Today</Text>
-              </Pressable>
-            )}
+        {/* Today affordance — kept compact so it doesn't crowd the nav */}
+        {!isCurrentMonthToday && (
+          <View style={{ alignItems: 'center', paddingBottom: 4 }}>
             <Pressable
-              onPress={goToNextMonth}
+              onPress={() => setCurrentMonth(new Date())}
               accessibilityRole="button"
-              accessibilityLabel="Next month"
+              accessibilityLabel="Go to today"
               hitSlop={12}
-              style={{ padding: 4 }}
+              style={{ paddingVertical: 4, paddingHorizontal: 8 }}
             >
-              <Ionicons name="chevron-forward" size={22} color={palette.accentPrimary} />
-            </Pressable>
-            <Pressable
-              onPress={() => router.push('/(tabs)/settings')}
-              accessibilityRole="button"
-              accessibilityLabel="Settings"
-              hitSlop={12}
-              style={{ padding: 4 }}
-            >
-              <Ionicons name="settings-outline" size={22} color={palette.textSecondary} />
+              <Text style={{
+                color: palette.accentPrimary,
+                fontFamily: FONT_FAMILY.mono,
+                fontSize: 11,
+                letterSpacing: 1.5,
+              }}>
+                JUMP TO TODAY
+              </Text>
             </Pressable>
           </View>
-        </View>
+        )}
 
         {/* Calendar grid — swipe horizontally to change month */}
         <GestureDetector
@@ -330,7 +310,7 @@ export default function CalendarScreen() {
               else if (e.translationX > 50) runOnJS(goToPrevMonth)();
             })}
         >
-          <View style={{ paddingHorizontal: 4 }}>
+          <View>
             <CalendarMonthGrid
               yearMonth={yearMonth}
               migraines={migraines}
@@ -343,28 +323,38 @@ export default function CalendarScreen() {
           </View>
         </GestureDetector>
 
+        {/* Severity legend */}
+        <SeverityLegend />
+
         {/* Empty state — shown when no migraines ever logged */}
         {!migrainesLoading && !hasAnyMigraine && (
           <View
             style={{
-              marginHorizontal: 16,
-              marginTop: 16,
-              padding: 16,
+              marginHorizontal: density.headerPad,
+              marginTop: 8,
+              padding: 14,
               backgroundColor: palette.surface,
-              borderRadius: 12,
+              borderRadius: density.cellRadius,
               borderWidth: 1,
               borderColor: palette.border,
             }}
             accessibilityRole="text"
           >
-            <Text style={{ color: palette.textSecondary, fontSize: 14, lineHeight: 20 }}>
+            <Text
+              style={{
+                color: palette.textSecondary,
+                fontFamily: FONT_FAMILY.sans,
+                fontSize: 12,
+                lineHeight: 18,
+              }}
+            >
               {emptyCopy.calendarFirstUse}
             </Text>
           </View>
         )}
       </ScrollView>
 
-      {/* FAB */}
+      {/* FAB — density-driven size */}
       <Pressable
         onPress={() => router.push('/log/choose')}
         accessibilityRole="button"
@@ -372,21 +362,21 @@ export default function CalendarScreen() {
         style={{
           position: 'absolute',
           bottom: 24,
-          right: 24,
-          width: 64,
-          height: 64,
-          borderRadius: 32,
+          right: 20,
+          width: density.fabSize,
+          height: density.fabSize,
+          borderRadius: density.fabSize / 2,
           backgroundColor: palette.accentPrimary,
           alignItems: 'center',
           justifyContent: 'center',
           shadowColor: '#000',
-          shadowOffset: { width: 0, height: 2 },
-          shadowOpacity: 0.2,
-          shadowRadius: 4,
+          shadowOffset: { width: 0, height: 4 },
+          shadowOpacity: 0.18,
+          shadowRadius: 16,
           elevation: 4,
         }}
       >
-        <Ionicons name="add" size={32} color={palette.textInverse} />
+        <Ionicons name="add" size={28} color={palette.textInverse} />
       </Pressable>
 
       {/* Month picker sheet */}

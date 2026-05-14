@@ -21,6 +21,7 @@ function paletteToVars(p: PaletteTokens): Record<string, string> {
     '--severity-severe': p.severitySevere,
     '--severity-moderate': p.severityModerate,
     '--severity-mild': p.severityMild,
+    '--aura-only': p.auraOnly,
     '--during-tint': p.duringTint,
   };
 }

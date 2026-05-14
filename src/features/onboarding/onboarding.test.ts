@@ -228,10 +228,10 @@ describe('writeSetting', () => {
 
 describe('MiniCalendarPreview palette colours', () => {
   const cases = [
-    { name: 'calm_sand', severe: '#8B2E1F', moderate: '#C97A4B', mild: '#E5C29F' },
-    { name: 'soft_storm', severe: '#1F3A5C', moderate: '#4F7BB0', mild: '#A8BDD9' },
-    { name: 'quiet_night', severe: '#D4654A', moderate: '#C49B7A', mild: '#5A6878' },
-    { name: 'forest_pale', severe: '#3D5230', moderate: '#7A9663', mild: '#C2D1B0' },
+    { name: 'calm_sand', severe: '#8E3522', moderate: '#C97A4B', mild: '#E5C29F' },
+    { name: 'soft_storm', severe: '#3D4F66', moderate: '#7088A8', mild: '#B8C5D6' },
+    { name: 'quiet_night', severe: '#A85A3F', moderate: '#B07A52', mild: '#5A4938' },
+    { name: 'forest_pale', severe: '#3D5230', moderate: '#7A9663', mild: '#BFD0AB' },
   ] as const;
 
   for (const { name, severe, moderate, mild } of cases) {

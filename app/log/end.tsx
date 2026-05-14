@@ -7,6 +7,8 @@ import { Slider } from '@/components/ui/Slider';
 import { Chip } from '@/components/ui/Chip';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { Sheet } from '@/components/ui/Sheet';
+import { SectionLabel } from '@/components/ui/SectionLabel';
+import { FONT_FAMILY } from '@/theme/fonts';
 import {
   HELPER_TAGS_DEFAULT_ORDER,
   POST_STATE_CHIPS,
@@ -72,9 +74,7 @@ function MedSelectionSheet({ migraineId: _migraineId, onAdd, onClose }: MedSheet
 
   return (
     <View className="px-6 pb-8 gap-6">
-      <Text className="text-text-primary text-lg font-medium">
-        Select medication
-      </Text>
+      <SectionLabel>Select medication</SectionLabel>
       <View className="gap-2">
         {meds.length === 0 ? (
           <Text className="text-text-secondary text-base">
@@ -94,7 +94,7 @@ function MedSelectionSheet({ migraineId: _migraineId, onAdd, onClose }: MedSheet
       </View>
       {selectedMed && (
         <View className="gap-2">
-          <Text className="text-text-secondary text-sm font-medium">Did it help?</Text>
+          <SectionLabel>Did it help?</SectionLabel>
           <SegmentedControl
             options={effectivenessOptions}
             value={effectiveness}
@@ -216,20 +216,23 @@ export default function LogEndScreen() {
         contentContainerClassName="px-6 py-8 gap-8"
       >
         {/* Heading */}
-        <View className="gap-1" accessibilityRole="header">
-          <Text className="text-text-primary text-2xl font-semibold">
+        <View className="gap-2" accessibilityRole="header">
+          <Text
+            style={{ fontFamily: FONT_FAMILY.serifMedium, letterSpacing: -0.4 }}
+            className="text-text-primary text-3xl"
+          >
             It ended.
           </Text>
-          <Text className="text-text-secondary text-base">
+          <Text className="text-text-secondary text-base italic">
             How long it lasted: {duration}.
           </Text>
         </View>
 
         {/* Peak severity */}
         <View className="gap-3">
-          <Text className="text-text-primary text-lg font-medium">
+          <SectionLabel>
             Peak severity (was it worse than {migraine.peakSeverity} at any point?)
-          </Text>
+          </SectionLabel>
           <Slider
             value={severity}
             onValueChange={setSeverity}
@@ -256,9 +259,7 @@ export default function LogEndScreen() {
 
         {/* What helped */}
         <View className="gap-3">
-          <Text className="text-text-primary text-lg font-medium">
-            What helped? (tap any)
-          </Text>
+          <SectionLabel>What helped? (tap any)</SectionLabel>
           <View className="flex-row flex-wrap gap-2">
             {helperChips.map((chip) => (
               <Chip
@@ -274,9 +275,7 @@ export default function LogEndScreen() {
 
         {/* Take anything */}
         <View className="gap-3">
-          <Text className="text-text-primary text-lg font-medium">
-            Take anything?
-          </Text>
+          <SectionLabel>Take anything?</SectionLabel>
           {dosesToRecord.map((dose, i) => (
             <Text key={i} className="text-text-secondary text-base">
               {dose.medName} {dose.doseAmount} — {dose.effectiveness}
@@ -294,9 +293,7 @@ export default function LogEndScreen() {
 
         {/* How feeling now */}
         <View className="gap-3">
-          <Text className="text-text-primary text-lg font-medium">
-            How are you feeling now?
-          </Text>
+          <SectionLabel>How are you feeling now?</SectionLabel>
           <SegmentedControl
             options={POST_STATE_CHIPS}
             value={postState}

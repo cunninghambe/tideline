@@ -1,5 +1,5 @@
 import React from 'react';
-import { ScrollView, View, Text, Pressable } from 'react-native';
+import { ScrollView, View, Text, Pressable, Switch } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { PALETTE_PICKER_OPTIONS } from '@/copy';
@@ -8,6 +8,18 @@ import { usePalette, useSetPalette } from '@/theme/useTheme';
 import { useThemeStore } from '@/stores/useThemeStore';
 import { SegmentedControl } from '@/components/ui/SegmentedControl';
 import { useSetSetting } from '@/features/settings/store';
+import {
+  useCalendarLayout,
+  useDensityName,
+  useAccentIntensityName,
+  useShowCycle,
+  useCalendarPreferenceWriters,
+} from '@/theme/calendarTokenHooks';
+import type {
+  CalendarLayout,
+  DensityName,
+  AccentIntensityName,
+} from '@/theme/calendarTokens';
 
 type ThemeMode = 'light' | 'dark' | 'system';
 
@@ -106,6 +118,24 @@ function PaletteCard({
   );
 }
 
+const LAYOUT_OPTIONS: { value: CalendarLayout; label: string }[] = [
+  { value: 'grid', label: 'Grid' },
+  { value: 'tidemark', label: 'Tidemark' },
+  { value: 'constellation', label: 'Constellation' },
+];
+
+const DENSITY_OPTIONS: { value: DensityName; label: string }[] = [
+  { value: 'compact', label: 'Compact' },
+  { value: 'standard', label: 'Standard' },
+  { value: 'roomy', label: 'Roomy' },
+];
+
+const ACCENT_OPTIONS: { value: AccentIntensityName; label: string }[] = [
+  { value: 'whisper', label: 'Whisper' },
+  { value: 'standard', label: 'Standard' },
+  { value: 'signal', label: 'Signal' },
+];
+
 export default function ThemeScreen() {
   const currentPalette = usePalette();
   const setPalette = useSetPalette();
@@ -113,6 +143,12 @@ export default function ThemeScreen() {
   const setMode = useThemeStore((s) => s.setMode);
   const { mutate: setSettingMutate } = useSetSetting();
   const currentPaletteName = useThemeStore((s) => s.palette);
+
+  const calendarLayout = useCalendarLayout();
+  const calendarDensity = useDensityName();
+  const calendarAccent = useAccentIntensityName();
+  const showCycle = useShowCycle();
+  const { setLayout, setDensity, setAccentIntensity, setShowCycle } = useCalendarPreferenceWriters();
 
   function handlePaletteSelect(name: PaletteName) {
     setPalette(name);
@@ -185,7 +221,7 @@ export default function ThemeScreen() {
             { label: 'Severe', color: currentPalette.severitySevere },
             { label: 'Moderate', color: currentPalette.severityModerate },
             { label: 'Mild', color: currentPalette.severityMild },
-            { label: 'Aura', color: currentPalette.accentSecondary },
+            { label: 'Aura', color: currentPalette.auraOnly },
             { label: 'Accent', color: currentPalette.accentPrimary },
           ].map(({ label, color }) => (
             <View key={label} className="items-center gap-1">
@@ -200,6 +236,68 @@ export default function ThemeScreen() {
               <Text className="text-text-muted text-xs">{label}</Text>
             </View>
           ))}
+        </View>
+      </View>
+
+      {/* Calendar tweaks */}
+      <View className="gap-3">
+        <Text className="text-text-primary text-xl font-semibold">Calendar</Text>
+        <Text className="text-text-secondary text-sm">
+          Three reading models for the same data. Try Constellation in pain.
+        </Text>
+
+        <View className="gap-1">
+          <Text className="text-text-muted text-xs uppercase tracking-wider">Layout</Text>
+          <SegmentedControl
+            options={LAYOUT_OPTIONS}
+            value={calendarLayout}
+            onChange={setLayout}
+            ariaLabel="Calendar layout"
+            testID="calendar-layout-control"
+          />
+        </View>
+
+        <View className="gap-1">
+          <Text className="text-text-muted text-xs uppercase tracking-wider">Density</Text>
+          <SegmentedControl
+            options={DENSITY_OPTIONS}
+            value={calendarDensity}
+            onChange={setDensity}
+            ariaLabel="Calendar density"
+            testID="calendar-density-control"
+          />
+        </View>
+
+        <View className="gap-1">
+          <Text className="text-text-muted text-xs uppercase tracking-wider">Accent intensity</Text>
+          <SegmentedControl
+            options={ACCENT_OPTIONS}
+            value={calendarAccent}
+            onChange={setAccentIntensity}
+            ariaLabel="Severity accent intensity"
+            testID="calendar-accent-control"
+          />
+          <Text className="text-text-muted text-xs">
+            How loudly severity reads. Whisper mutes; Signal pushes for legibility.
+          </Text>
+        </View>
+
+        <View
+          className="flex-row items-center justify-between bg-surface rounded-2xl p-4 border border-border"
+          style={{ minHeight: 56 }}
+        >
+          <View style={{ flex: 1, paddingRight: 12 }}>
+            <Text className="text-text-primary text-sm font-medium">Cycle markers</Text>
+            <Text className="text-text-muted text-xs">
+              Show period / ovulation / late-luteal dots on day cells.
+            </Text>
+          </View>
+          <Switch
+            value={showCycle}
+            onValueChange={setShowCycle}
+            accessibilityLabel="Show cycle markers"
+            testID="calendar-show-cycle"
+          />
         </View>
       </View>
     </ScrollView>

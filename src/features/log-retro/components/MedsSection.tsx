@@ -5,7 +5,9 @@ import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { Stepper } from '@/components/ui/Stepper';
 import { Chip } from '@/components/ui/Chip';
+import { SectionLabel } from '@/components/ui/SectionLabel';
 import { usePalette } from '@/theme/useTheme';
+import { FONT_FAMILY } from '@/theme/fonts';
 import type { MedicationRow } from '@/types';
 import type { QueuedDose, EffectivenessRating } from '../logic';
 import { formatHHMM } from '../logic';
@@ -90,7 +92,12 @@ export function MedsSection({
 
   return (
     <View className="gap-3">
-      <Text className="text-text-primary text-xl font-semibold">Medications</Text>
+      <Text
+        style={{ fontFamily: FONT_FAMILY.serifMedium }}
+        className="text-text-primary text-xl"
+      >
+        Medications
+      </Text>
 
       {queuedDoses.length > 0 && (
         <View className="gap-2">
@@ -191,7 +198,7 @@ export function MedsSection({
 
               {/* Dose amount */}
               <View className="gap-1">
-                <Text className="text-text-secondary text-sm font-medium">Dose</Text>
+                <SectionLabel>Dose</SectionLabel>
                 <TextInput
                   value={entry.doseAmount}
                   onChangeText={(v) => setEntry({ ...entry, doseAmount: v })}
@@ -204,9 +211,9 @@ export function MedsSection({
 
               {/* Time taken */}
               <View className="gap-2">
-                <Text className="text-text-secondary text-sm font-medium">
-                  Time taken: {formatHHMM(entry.takenAtHour, entry.takenAtMinute)}
-                </Text>
+                <SectionLabel>
+                  Time taken — {formatHHMM(entry.takenAtHour, entry.takenAtMinute)}
+                </SectionLabel>
                 <View className="flex-row gap-4">
                   <View className="flex-1">
                     <Text className="text-text-muted text-xs mb-1">Hour</Text>
@@ -232,9 +239,7 @@ export function MedsSection({
 
               {/* Did it help? */}
               <View className="gap-2">
-                <Text className="text-text-secondary text-sm font-medium">
-                  Did it help?
-                </Text>
+                <SectionLabel>Did it help?</SectionLabel>
                 <View className="flex-row flex-wrap gap-2">
                   {EFFECTIVENESS_OPTIONS.map((opt) => (
                     <Chip

@@ -10,6 +10,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Button } from '@/components/ui/Button';
 import { Sheet } from '@/components/ui/Sheet';
 import { TextField } from '@/components/ui/TextField';
+import { FONT_FAMILY } from '@/theme/fonts';
 import { TimeSection } from '@/features/log-retro/components/TimeSection';
 import { SeveritySection } from '@/features/log-retro/components/SeveritySection';
 import { FoodWaterSection } from '@/features/log-retro/components/FoodWaterSection';
@@ -173,7 +174,10 @@ export default function LogRetroScreen() {
           variant="ghost"
           testID="cancel-button"
         />
-        <Text className="text-text-primary text-lg font-semibold">
+        <Text
+          style={{ fontFamily: FONT_FAMILY.serifMedium }}
+          className="text-text-primary text-lg"
+        >
           {isEditMode ? 'Edit migraine' : 'Log a migraine'}
         </Text>
         <Button
