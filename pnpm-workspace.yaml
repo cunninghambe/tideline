@@ -1,3 +1,4 @@
 onlyBuiltDependencies:
+  - dtrace-provider
   - esbuild
   - unrs-resolver

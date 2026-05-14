@@ -46,6 +46,13 @@
     "experiments": {
       "typedRoutes": true,
       "reactCompiler": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "bfffaba2-ad56-4007-af26-511756abea7f"
+      }
+    },
+    "owner": "autogeny"
   }
 }
