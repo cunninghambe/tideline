@@ -14,6 +14,10 @@ import { runMigrations } from '@/db/client';
 import { getActive } from '@/features/migraines/repo';
 import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
 import { scheduleDailyCheckinReminder } from '@/features/checkins/notifications';
+import { initObservability, reportError } from '@/observability/client';
+import { RootErrorBoundary } from '@/observability/error-boundary';
+
+initObservability();
 
 void SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -32,8 +36,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     runMigrations().catch((e: unknown) => {
-      // Migration errors are programmer errors — log and surface
-      console.error('[tideline] Migration failed:', e);
+      reportError(e, { where: 'migrations' });
     });
 
     const result = getActive();
@@ -42,7 +45,7 @@ export default function RootLayout() {
     }
 
     scheduleDailyCheckinReminder().catch((e: unknown) => {
-      console.error('[tideline] Failed to schedule daily check-in reminder:', e);
+      reportError(e, { where: 'scheduleDailyCheckinReminder' });
     });
   }, [setActiveMigraineId]);
 
@@ -55,15 +58,17 @@ export default function RootLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <QueryClientProvider client={queryClient}>
-      <ThemeProvider>
-        <SafeAreaProvider>
-          <GestureHandlerRootView style={{ flex: 1 }}>
-            <ThemedStack />
-          </GestureHandlerRootView>
-        </SafeAreaProvider>
-      </ThemeProvider>
-    </QueryClientProvider>
+    <RootErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider>
+          <SafeAreaProvider>
+            <GestureHandlerRootView style={{ flex: 1 }}>
+              <ThemedStack />
+            </GestureHandlerRootView>
+          </SafeAreaProvider>
+        </ThemeProvider>
+      </QueryClientProvider>
+    </RootErrorBoundary>
   );
 }
 
