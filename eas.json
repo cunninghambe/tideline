@@ -1,6 +1,10 @@
 {
   "cli": {
+<<<<<<< HEAD
     "version": ">= 18.12.0",
+=======
+    "version": ">= 12.0.0",
+>>>>>>> 1dd020d (chore(eas): add development/preview/production build profiles)
     "appVersionSource": "remote"
   },
   "build": {
@@ -9,10 +13,17 @@
       "distribution": "internal",
       "android": {
         "buildType": "apk"
+<<<<<<< HEAD
+=======
+      },
+      "env": {
+        "EXPO_PUBLIC_UH_OH_DSN": "http://fde902e1422064b319a5cd1df72401b1752aea1f68ff2c25cb8c3c4113f0b135@5.161.200.212:8300"
+>>>>>>> 1dd020d (chore(eas): add development/preview/production build profiles)
       }
     },
     "preview": {
       "distribution": "internal",
+<<<<<<< HEAD
       "android": {
         "buildType": "apk"
       }
@@ -21,6 +32,20 @@
       "autoIncrement": true,
       "android": {
         "buildType": "app-bundle"
+=======
+      "channel": "preview",
+      "android": {
+        "buildType": "apk"
+      },
+      "env": {
+        "EXPO_PUBLIC_UH_OH_DSN": "http://fde902e1422064b319a5cd1df72401b1752aea1f68ff2c25cb8c3c4113f0b135@5.161.200.212:8300"
+      }
+    },
+    "production": {
+      "channel": "production",
+      "env": {
+        "EXPO_PUBLIC_UH_OH_DSN": "http://fde902e1422064b319a5cd1df72401b1752aea1f68ff2c25cb8c3c4113f0b135@5.161.200.212:8300"
+>>>>>>> 1dd020d (chore(eas): add development/preview/production build profiles)
       }
     }
   },
