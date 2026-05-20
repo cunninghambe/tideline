@@ -94,6 +94,12 @@ Migrations live in `src/db/migrations/` and run on app start. Idempotent.
 | `prettier` `^3.x` | Formatting |
 | `@trivago/prettier-plugin-sort-imports` | Stable import order |
 
+### Observability
+
+| Package | Why |
+|---|---|
+| `@uh-oh/react-native` | Crash, hang (ANR), and JS error reporting via Brad's self-hosted uh-oh backend. JS exceptions, unhandled promise rejections, render errors via boundary, Android native crashes + ANRs via xCrash + UEH bridge. No vendor in the trust chain, no event-volume caps, free in perpetuity. Strict PII scrubber + denylist enforced in `beforeSend` — see [`06-observability.md`](06-observability.md). Installed via `pnpm add github:cunninghambe/uh-oh#sdk-dist` (auto-published from main via `scripts/build-sdk-dist.mjs` in the uh-oh repo). Peer dep: `@react-native-async-storage/async-storage` for the offline-spool. v0.1 is Android-only (iOS reserved in the wire format but no iOS code ships). |
+
 ### What we explicitly do NOT install
 
 - `moment` — use date-fns
@@ -102,7 +108,7 @@ Migrations live in `src/db/migrations/` and run on app start. Idempotent.
 - `redux` / `redux-toolkit` — Zustand is enough
 - `styled-components` / `emotion` — NativeWind handles styling
 - Any analytics SDK (Amplitude, Segment, Mixpanel) — health data + analytics is a privacy nightmare; we'll add minimal first-party event logging post-launch if needed
-- Crashlytics / Sentry — Expo's built-in error reporting first; revisit pre-launch
+- Sentry / Bugsnag / Crashlytics — chose uh-oh (see Observability row); self-hosted, single observability vendor only
 - Any "AI feature" SDK that claims to learn from the user's data on-device. We use Claude Haiku via our server function only.
 
 ---
