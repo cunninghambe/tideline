@@ -51,7 +51,8 @@
       "router": {},
       "eas": {
         "projectId": "bfffaba2-ad56-4007-af26-511756abea7f"
-      }
+      },
+      "uhOhDsn": "http://fde902e1422064b319a5cd1df72401b1752aea1f68ff2c25cb8c3c4113f0b135@5.161.200.212:8300"
     },
     "owner": "autogeny"
   }

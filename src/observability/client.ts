@@ -1,3 +1,4 @@
+import Constants from "expo-constants";
 import * as UhOh from "@uh-oh/react-native";
 import { scrubEvent } from "./scrub";
 import type { ErrorContext, EventEnvelope } from "./types";
@@ -11,14 +12,30 @@ let _disabled = false;
 let _dsnWarningLogged = false;
 const _buffer: Buffered[] = [];
 
+// DSN resolution order: app.json `expo.extra.uhOhDsn` → env var fallback.
+// The extra-config path is the canonical one in EAS builds because
+// `EXPO_PUBLIC_*` env vars from eas.json don't always reach the Metro
+// bundler at build time (observed on SDK 54 / EAS preview profile,
+// 2026-05-22). The env fallback keeps tests and ad-hoc dev configurable
+// without app.json edits.
 function readDsn(): string | undefined {
-  const dsn = process.env.EXPO_PUBLIC_UH_OH_DSN;
-  return typeof dsn === "string" && dsn.length > 0 ? dsn : undefined;
+  const extra = (Constants.expoConfig?.extra ?? {}) as Record<string, unknown>;
+  const fromExtra = extra.uhOhDsn;
+  if (typeof fromExtra === "string" && fromExtra.length > 0) return fromExtra;
+  const fromEnv = process.env.EXPO_PUBLIC_UH_OH_DSN;
+  return typeof fromEnv === "string" && fromEnv.length > 0 ? fromEnv : undefined;
 }
 
 function readRelease(): string {
-  const version = process.env.EXPO_PUBLIC_APP_VERSION ?? "0.0.0";
-  const build = process.env.EXPO_PUBLIC_APP_BUILD ?? "0";
+  const version =
+    Constants.expoConfig?.version ?? process.env.EXPO_PUBLIC_APP_VERSION ?? "0.0.0";
+  const androidBuild = Constants.expoConfig?.android?.versionCode;
+  const iosBuild = Constants.expoConfig?.ios?.buildNumber;
+  const build =
+    (typeof androidBuild === "number" ? String(androidBuild) : undefined) ??
+    (typeof iosBuild === "string" ? iosBuild : undefined) ??
+    process.env.EXPO_PUBLIC_APP_BUILD ??
+    "0";
   return `${version}+${build}`;
 }
 
