@@ -66,9 +66,11 @@ export function AutoEndPrompt({ migraineId, startedAt, onDismiss }: Props) {
   return (
     <Sheet
       open
-      onClose={() => {
-        /* non-dismissible — no-op */
-      }}
+      // Backdrop tap / Android back dismisses for this visit only — the
+      // prompt re-appears next time the calendar mounts until the user
+      // answers. A no-op here traps the user behind the modal (and swallows
+      // the Android back button), which violates "no dark patterns".
+      onClose={() => onDismiss?.()}
       height="auto"
       testID="auto-end-prompt"
     >

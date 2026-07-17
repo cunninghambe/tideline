@@ -16,6 +16,7 @@ import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
 import { scheduleDailyCheckinReminder } from '@/features/checkins/notifications';
 import { initObservability, reportError } from '@/observability/client';
 import { RootErrorBoundary } from '@/observability/error-boundary';
+import { replaceEqualDateAware } from '@/lib/structuralSharing';
 
 initObservability();
 
@@ -26,6 +27,11 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 30_000,
       gcTime: 5 * 60_000,
+      // Default structural sharing treats Date instances as opaque, so rows
+      // with Date columns get fresh references on every refetch even when
+      // unchanged — re-firing everything keyed on query data after each
+      // focus-invalidation. Compare Dates by timestamp instead.
+      structuralSharing: replaceEqualDateAware,
     },
   },
 });
