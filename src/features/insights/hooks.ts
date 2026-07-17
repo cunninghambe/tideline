@@ -5,7 +5,7 @@ import { startOfWeek, addDays, format } from 'date-fns';
 import { useAllMigraineEvents } from '@/features/migraines/hooks';
 import { db } from '@/db/client';
 import { dailyCheckins, foodTags, weatherSnapshots, medicationDoses } from '@/db/schema';
-import { phaseForDate, list as listCycleEvents } from '@/features/cycle/repo';
+import { phasesForDates, list as listCycleEvents } from '@/features/cycle/repo';
 import { FEATURE_FLAGS } from '@/config/feature-flags';
 import type { MigraineRow, DailyCheckinRow, WeatherSnapshotRow } from '@/types';
 import type { CyclePhase } from '@/features/cycle/repo';
@@ -118,11 +118,13 @@ export function useCorrelations(): {
         toDateString(m.startedAt instanceof Date ? m.startedAt : new Date(m.startedAt)),
       ),
     ]);
-    const phaseByDate = new Map<string, CyclePhase | null>();
-    for (const date of allDates) {
-      const result = phaseForDate(date);
-      phaseByDate.set(date, result.ok ? result.value : null);
-    }
+    // Batched: one cycle_events scan for all dates, not one per date.
+    const phasesResult = phasesForDates(Array.from(allDates));
+    const phaseByDate = new Map<string, CyclePhase | null>(
+      phasesResult.ok
+        ? Object.entries(phasesResult.value)
+        : Array.from(allDates, (d) => [d, null]),
+    );
 
     // Count distinct cycles (period_start events)
     const cycleCount = cycleEvents.filter((e) => e.eventType === 'period_start').length;

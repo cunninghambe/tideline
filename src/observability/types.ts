@@ -6,6 +6,7 @@ export type ErrorWhere =
   | "migrations"
   | "scheduleDailyCheckinReminder"
   | "weatherFetch"
+  | "fontLoading"
   | "supabaseSync"
   | "poolIngest"
   | "render"

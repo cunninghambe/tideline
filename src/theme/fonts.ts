@@ -1,4 +1,7 @@
+import { useEffect } from 'react';
 import { useFonts } from 'expo-font';
+
+import { reportError } from '@/observability/client';
 import {
   Geist_300Light,
   Geist_400Regular,
@@ -35,7 +38,7 @@ export const FONT_FAMILY = {
 } as const;
 
 export function useTidelineFonts(): boolean {
-  const [loaded] = useFonts({
+  const [loaded, error] = useFonts({
     Geist_300Light,
     Geist_400Regular,
     Geist_500Medium,
@@ -46,5 +49,12 @@ export function useTidelineFonts(): boolean {
     Newsreader_500Medium,
     Newsreader_600SemiBold,
   });
-  return loaded;
+
+  useEffect(() => {
+    if (error) reportError(error, { where: 'fontLoading' });
+  }, [error]);
+
+  // On error, proceed with system fonts rather than holding the app on the
+  // splash screen forever (`_layout` renders null until this returns true).
+  return loaded || error != null;
 }

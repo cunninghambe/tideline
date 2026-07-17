@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useEffect, useMemo } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -139,7 +139,10 @@ export default function CalendarScreen() {
 
   const yearMonth = toYearMonth(currentMonth);
 
-  const { data: migraines = [], isLoading: migrainesLoading } = useMigraineEventsByMonth(yearMonth);
+  const { data: migrainesData, isLoading: migrainesLoading } = useMigraineEventsByMonth(yearMonth);
+  // Stable [] fallback — a `data = []` default mints a fresh array every render
+  // while the query is unresolved, which re-fires anything keyed on it.
+  const migraines = useMemo(() => migrainesData ?? [], [migrainesData]);
   const cycleMarkers = useCycleMarkersForMonth(yearMonth);
   useActiveMigraineWatcher(yearMonth);
 
@@ -171,9 +174,11 @@ export default function CalendarScreen() {
 
   const [autoEndDismissed, setAutoEndDismissed] = useState(false);
 
-  // Load checkins for the month to display dots
-  const [checkinsMap, setCheckinsMap] = useState<Record<string, DailyCheckinRow>>({});
-  useEffect(() => {
+  // Checkins for the month to display dots. Derived with useMemo (the repo
+  // reads are synchronous) rather than setState-in-effect: an effect keyed on
+  // the migraines array and calling setState unconditionally re-renders in a
+  // loop whenever the query has no resolved data (fresh array each render).
+  const checkinsMap = useMemo(() => {
     const dateSet = new Set<string>();
     for (const m of migraines) {
       const d = m.startedAt instanceof Date ? m.startedAt : new Date(m.startedAt);
@@ -187,14 +192,14 @@ export default function CalendarScreen() {
         dateSet.add(toDateString(d));
       }
     }
-    const newMap: Record<string, DailyCheckinRow> = {};
+    const map: Record<string, DailyCheckinRow> = {};
     for (const ds of dateSet) {
       const result = getByDate(ds);
       if (result.ok && result.value) {
-        newMap[ds] = result.value;
+        map[ds] = result.value;
       }
     }
-    setCheckinsMap(newMap);
+    return map;
   }, [migraines, yearMonth]);
 
   const checkinRows = useMemo(() => Object.values(checkinsMap), [checkinsMap]);
