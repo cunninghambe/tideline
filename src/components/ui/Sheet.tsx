@@ -8,6 +8,7 @@ import {
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 type SheetHeight = 'auto' | 'half' | 'full';
 
@@ -43,51 +44,57 @@ export function Sheet({
       testID={testID}
       accessibilityViewIsModal
     >
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        className="flex-1"
-      >
-        {/* Backdrop */}
-        <Pressable
-          className="flex-1 bg-during-tint/50"
-          onPress={onClose}
-          accessibilityLabel="Close sheet"
-          accessibilityRole="button"
-        />
-        {/* Sheet container */}
-        <View
-          style={heightStyles[height]}
-          className="bg-surface-elevated rounded-t-3xl"
+      {/* RN Modal mounts its content in a new native window, outside the app's
+          GestureHandlerRootView — without its own root view here, gesture-based
+          children (Slider, GestureDetector) silently receive no touches on
+          Android. */}
+      <GestureHandlerRootView style={{ flex: 1 }}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          className="flex-1"
         >
-          {/* Drag handle */}
-          <View className="items-center pt-3 pb-1">
-            <View className="w-10 h-1 rounded-full bg-border" />
-          </View>
-          {/* Optional title */}
-          {title && (
-            <View className="flex-row items-center justify-between px-6 pb-4">
-              <Text className="text-text-primary text-xl font-semibold">
-                {title}
-              </Text>
-              <Pressable
-                onPress={onClose}
-                accessibilityLabel="Close"
-                accessibilityRole="button"
-                hitSlop={12}
-              >
-                <Text className="text-accent-primary text-base font-medium">Done</Text>
-              </Pressable>
-            </View>
-          )}
-          <ScrollView
-            className="flex-1"
-            keyboardShouldPersistTaps="handled"
-            showsVerticalScrollIndicator={false}
+          {/* Backdrop */}
+          <Pressable
+            className="flex-1 bg-during-tint/50"
+            onPress={onClose}
+            accessibilityLabel="Close sheet"
+            accessibilityRole="button"
+          />
+          {/* Sheet container */}
+          <View
+            style={heightStyles[height]}
+            className="bg-surface-elevated rounded-t-3xl"
           >
-            {children}
-          </ScrollView>
-        </View>
-      </KeyboardAvoidingView>
+            {/* Drag handle */}
+            <View className="items-center pt-3 pb-1">
+              <View className="w-10 h-1 rounded-full bg-border" />
+            </View>
+            {/* Optional title */}
+            {title && (
+              <View className="flex-row items-center justify-between px-6 pb-4">
+                <Text className="text-text-primary text-xl font-semibold">
+                  {title}
+                </Text>
+                <Pressable
+                  onPress={onClose}
+                  accessibilityLabel="Close"
+                  accessibilityRole="button"
+                  hitSlop={12}
+                >
+                  <Text className="text-accent-primary text-base font-medium">Done</Text>
+                </Pressable>
+              </View>
+            )}
+            <ScrollView
+              className="flex-1"
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+            >
+              {children}
+            </ScrollView>
+          </View>
+        </KeyboardAvoidingView>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
