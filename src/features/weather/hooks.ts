@@ -115,12 +115,19 @@ export function useCurrentWeather(): {
   };
 
   // Trigger capture on mount if cache is empty or stale.
+  // The key must NOT be prefixed by WEATHER_QUERY_KEY: invalidating that
+  // prefix would match this query too and force it to refetch itself,
+  // spinning a permanent capture loop whenever a fresh snapshot can't be
+  // written (location permission denied, offline, Open-Meteo down).
+  // Invalidate only on success for the same reason.
   useQuery({
-    queryKey: [...WEATHER_QUERY_KEY, 'auto'],
+    queryKey: ['weather', 'auto-capture'],
     queryFn: async () => {
       if (isStale) {
-        await captureWeatherNow();
-        await queryClient.invalidateQueries({ queryKey: WEATHER_QUERY_KEY });
+        const result = await captureWeatherNow();
+        if (result.ok) {
+          await queryClient.invalidateQueries({ queryKey: WEATHER_QUERY_KEY });
+        }
       }
       return null;
     },

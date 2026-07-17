@@ -7,7 +7,7 @@ import { db } from '@/db/client';
 import { medicationDoses, medications } from '@/db/schema';
 import { getByMonth } from '@/features/migraines/repo';
 import { getByDate } from '@/features/checkins/repo';
-import { phaseForDate } from '@/features/cycle/repo';
+import { phaseForDate, phasesForDates } from '@/features/cycle/repo';
 import type { CyclePhase } from '@/features/cycle/repo';
 import { useActiveMigraineStore } from '@/stores/useActiveMigraineStore';
 import { getMonthGrid, toDateString } from './utils';
@@ -126,14 +126,14 @@ export function useCycleMarkersForMonth(yearMonth: string): Record<string, Cycle
   const grid = useMemo(() => getMonthGrid(yearMonth), [yearMonth]);
 
   return useMemo(() => {
+    // One batched call — phaseForDate in a loop would run a full
+    // cycle_events table scan for each of the 42 grid days.
+    const dates = grid.flat().map(toDateString);
+    const result = phasesForDates(dates);
+    if (result.ok) return result.value;
+
     const map: Record<string, CyclePhase | null> = {};
-    for (const week of grid) {
-      for (const day of week) {
-        const ds = toDateString(day);
-        const result = phaseForDate(ds);
-        map[ds] = result.ok ? result.value : null;
-      }
-    }
+    for (const ds of dates) map[ds] = null;
     return map;
   }, [grid]);
 }

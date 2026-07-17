@@ -72,6 +72,18 @@ export function getMonth(yearMonth: string): Result<CycleRow[]> {
  * Late luteal: cycle_len-2 to cycle_len
  */
 export function phaseForDate(date: string): Result<CyclePhase | null> {
+  const result = phasesForDates([date]);
+  if (!result.ok) return result;
+  return ok(result.value[date] ?? null);
+}
+
+/**
+ * Batched variant of {@link phaseForDate}: loads cycle events ONCE and
+ * computes the phase for every requested date in memory. Use this from any
+ * call site that needs more than one date (calendar grid, insights) — calling
+ * phaseForDate in a loop runs a full cycle_events scan per date.
+ */
+export function phasesForDates(dates: string[]): Result<Record<string, CyclePhase | null>> {
   try {
     const allResult = list();
     if (!allResult.ok) return allResult;
@@ -81,7 +93,12 @@ export function phaseForDate(date: string): Result<CyclePhase | null> {
       .map((e) => e.date)
       .sort();
 
-    if (periodStarts.length === 0) return ok(null);
+    const map: Record<string, CyclePhase | null> = {};
+
+    if (periodStarts.length === 0) {
+      for (const date of dates) map[date] = null;
+      return ok(map);
+    }
 
     // Compute average cycle length from consecutive period starts
     let avgCycleLen = 28;
@@ -95,28 +112,41 @@ export function phaseForDate(date: string): Result<CyclePhase | null> {
       avgCycleLen = Math.round(lengths.reduce((a, b) => a + b, 0) / lengths.length);
     }
 
-    // Find the most recent period start on or before the target date
-    const targetMs = new Date(date).getTime();
-    const recentStart = periodStarts
-      .filter((d) => new Date(d).getTime() <= targetMs)
-      .at(-1);
+    const startsMs = periodStarts.map((d) => new Date(d).getTime());
 
-    if (!recentStart) return ok(null);
-
-    const cycleDay = Math.round(
-      (targetMs - new Date(recentStart).getTime()) / 86_400_000,
-    ) + 1; // 1-indexed
-
-    if (cycleDay < 1 || cycleDay > avgCycleLen + 14) return ok(null);
-
-    const ovulationDay = Math.round(avgCycleLen / 2);
-
-    if (cycleDay <= 5) return ok('period');
-    if (cycleDay >= ovulationDay - 1 && cycleDay <= ovulationDay + 1) return ok('ovulation_window');
-    if (cycleDay >= avgCycleLen - 2) return ok('late_luteal');
-    if (cycleDay > ovulationDay + 1) return ok('luteal');
-    return ok('follicular');
+    for (const date of dates) {
+      map[date] = phaseForTarget(new Date(date).getTime(), startsMs, avgCycleLen);
+    }
+    return ok(map);
   } catch (cause) {
     return err({ kind: 'database', message: 'Failed to compute cycle phase', cause });
   }
+}
+
+/** Pure phase computation for one target date against pre-loaded period starts. */
+function phaseForTarget(
+  targetMs: number,
+  sortedStartsMs: number[],
+  avgCycleLen: number,
+): CyclePhase | null {
+  // Find the most recent period start on or before the target date
+  let recentStartMs: number | null = null;
+  for (const startMs of sortedStartsMs) {
+    if (startMs <= targetMs) recentStartMs = startMs;
+    else break;
+  }
+
+  if (recentStartMs === null) return null;
+
+  const cycleDay = Math.round((targetMs - recentStartMs) / 86_400_000) + 1; // 1-indexed
+
+  if (cycleDay < 1 || cycleDay > avgCycleLen + 14) return null;
+
+  const ovulationDay = Math.round(avgCycleLen / 2);
+
+  if (cycleDay <= 5) return 'period';
+  if (cycleDay >= ovulationDay - 1 && cycleDay <= ovulationDay + 1) return 'ovulation_window';
+  if (cycleDay >= avgCycleLen - 2) return 'late_luteal';
+  if (cycleDay > ovulationDay + 1) return 'luteal';
+  return 'follicular';
 }
